@@ -32,3 +32,5 @@ snapshots
 
 # Log files
 *.log
+
+queue
