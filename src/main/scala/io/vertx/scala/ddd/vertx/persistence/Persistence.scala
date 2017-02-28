@@ -1,16 +1,17 @@
 package io.vertx.scala.ddd.vertx.persistence
 
-import io.vertx.scala.ddd.persistence.AggregateId
-
 object Persistence {
+
+  type SerializedAggregate = Array[Byte]
+  type AggregateId = java.lang.Long
+
   trait Persistent[A <: AnyRef] {
-    def persist(aggregate: A)(implicit aggregateManager: AggregateManager[A])
-    def id(aggregate: A): AggregateId
+    def id(x: A):java.lang.Long
   }
 
   implicit class PersistentUtil[A <: AnyRef](x: A)(implicit aggregateManager: AggregateManager[A]) {
     def persist(implicit persistable: Persistent[A]): Unit = {
-      persistable.persist(x)
+      aggregateManager.persist(persistable.id(x), x)
     }
   }
 }
