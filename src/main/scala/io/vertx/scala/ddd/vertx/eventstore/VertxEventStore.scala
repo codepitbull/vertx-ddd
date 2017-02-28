@@ -1,4 +1,4 @@
-package io.vertx.scala.ddd.eventstore
+package io.vertx.scala.ddd.vertx.eventstore
 
 import io.vertx.scala.core.WorkerExecutor
 import net.openhft.chronicle.queue.impl.single.{SingleChronicleQueue, SingleChronicleQueueBuilder}

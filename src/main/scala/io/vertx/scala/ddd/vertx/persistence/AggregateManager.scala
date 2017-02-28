@@ -1,16 +1,16 @@
-package io.vertx.scala.ddd.persistence
+package io.vertx.scala.ddd.vertx.persistence
 
 import java.io.File
 
 import io.vertx.scala.core.WorkerExecutor
-import io.vertx.scala.ddd.persistence.Persistence.Persistent
-import io.vertx.scala.ddd.kryo.KryoEncoding.{encodeToBytes, register}
+import io.vertx.scala.ddd.persistence.{AggregateId, SerializedAggregate}
+import io.vertx.scala.ddd.vertx.kryo.KryoEncoding.{encodeToBytes, register}
 import net.openhft.chronicle.map.ChronicleMap
 
 import scala.concurrent.Future
 import scala.reflect.runtime.universe._
 
-class AggregateManager[A <: Persistent[A]](val name: String, theMap: ChronicleMap[AggregateId, SerializedAggregate]) {
+class AggregateManager[A <: AnyRef](val name: String, theMap: ChronicleMap[AggregateId, SerializedAggregate]) {
   def persist(id: AggregateId, aggregate: A): Unit = theMap.put(id, encodeToBytes(aggregate))
 
   def close(): Unit = theMap.close()
@@ -22,7 +22,7 @@ class AggregateManager[A <: Persistent[A]](val name: String, theMap: ChronicleMa
 object AggregateManager {
   private val classLoaderMirror = runtimeMirror(getClass.getClassLoader)
 
-  def apply[A: TypeTag](executor: WorkerExecutor, name: String)(implicit tag: TypeTag[A]): Future[AggregateManager[A]] = {
+  def apply[A <: AnyRef: TypeTag](executor: WorkerExecutor, name: String)(implicit tag: TypeTag[A]): Future[AggregateManager[A]] = {
     register(classLoaderMirror.runtimeClass(typeOf(tag)))
     executor.executeBlocking[(AggregateManager[A])](() => {
       val theMap = ChronicleMap

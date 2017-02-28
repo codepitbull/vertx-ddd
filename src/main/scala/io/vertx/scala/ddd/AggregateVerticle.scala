@@ -1,8 +1,8 @@
 package io.vertx.scala.ddd
 
 import io.vertx.lang.scala.ScalaVerticle
-import io.vertx.scala.ddd.aggregate.AggregateManager
-import io.vertx.scala.ddd.eventstore.VertxEventStore
+import io.vertx.scala.ddd.vertx.persistence.AggregateManager
+import io.vertx.scala.ddd.vertx.eventstore.VertxEventStore
 
 import scala.concurrent.Future
 import scala.concurrent.Future._

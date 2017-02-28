@@ -1,4 +1,4 @@
-package io.vertx.scala.ddd.kryo
+package io.vertx.scala.ddd.vertx.kryo
 
 import io.vertx.core.buffer.Buffer
 import io.vertx.scala.core.eventbus.Message

@@ -1,4 +1,4 @@
-package io.vertx.scala.ddd.persistence
+package io.vertx.scala.ddd.vertx.persistence
 
 import java.util
 import java.util.Map.Entry

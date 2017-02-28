@@ -1,4 +1,4 @@
-package io.vertx.scala.ddd.eventbus
+package io.vertx.scala.ddd.vertx.eventbus
 
 import io.vertx.lang.scala.VertxExecutionContext
 import io.vertx.scala.core.Vertx
