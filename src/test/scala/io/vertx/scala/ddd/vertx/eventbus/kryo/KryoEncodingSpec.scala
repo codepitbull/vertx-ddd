@@ -4,7 +4,8 @@ import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.scala.core.eventbus.Message
 import org.scalatest.{FlatSpec, Matchers}
-import io.vertx.scala.ddd.eventbus.kryo.KryoEncoding._
+import io.vertx.scala.ddd.kryo.KryoEncoding._
+import io.vertx.scala.ddd.kryo.KryoMessage
 import org.mockito.Mockito.when
 import org.scalatest.mockito.MockitoSugar
 

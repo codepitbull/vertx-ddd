@@ -1,9 +1,8 @@
-package io.vertx.scala.ddd.eventbus
+package io.vertx.scala.ddd
 
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.scala.core.eventbus.EventBus
-import io.vertx.scala.ddd.eventbus.kryo.KryoEncoding._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.runtime.universe._

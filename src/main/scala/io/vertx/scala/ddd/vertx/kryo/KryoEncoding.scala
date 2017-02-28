@@ -1,4 +1,4 @@
-package io.vertx.scala.ddd.eventbus.kryo
+package io.vertx.scala.ddd.kryo
 
 import java.io.ByteArrayOutputStream
 

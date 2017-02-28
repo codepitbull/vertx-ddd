@@ -1,6 +1,7 @@
 package io.vertx.scala.ddd.eventbus.kryo
 
 import io.vertx.scala.core.Vertx
+import io.vertx.scala.ddd.kryo.KryoEncoding
 import org.scalatest.{AsyncFlatSpec, FlatSpec, Matchers}
 
 class KryoEventbusSpec extends AsyncFlatSpec with Matchers {
