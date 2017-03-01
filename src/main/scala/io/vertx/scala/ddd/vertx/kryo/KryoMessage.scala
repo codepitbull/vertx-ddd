@@ -14,8 +14,8 @@ class KryoMessage[T](val body:T, private val original: Message[Buffer]) {
     * Send a reply to the sender of the original message. The payload will be encoded using Kryo.
     * @param message
     */
-  def reply(message: AnyRef): Unit = {
-    original.reply(KryoEncoding.encodeToBuffer(message))
+  def reply(message: AnyRef)(implicit encoding: KryoEncoding): Unit = {
+    original.reply(encoding.encodeToBuffer(message))
   }
 }
 

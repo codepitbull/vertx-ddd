@@ -13,18 +13,13 @@ import scala.reflect.runtime.universe._
 /**
   * Manage all Kryo-Encoding related things. Especially registration of encodable classes.
   */
-object KryoEncoding {
+class KryoEncoding(clazzes: Seq[Class[_]]) {
   protected val classLoaderMirror = runtimeMirror(getClass.getClassLoader)
   private val kr = new ScalaKryoInstantiator
   private val kryo = kr.newKryo()
   kryo.setRegistrationRequired(true)
 
-  /**
-    * Registe the provided class to the encoder.
-    *
-    * @param clazz
-    */
-  def register(clazz: Class[_]): Unit = kryo.register(clazz)
+  clazzes.foreach(kryo.register(_, kryo.getNextRegistrationId))
 
   /**
     * Encode the given AnyRef and return the bytes as a n[[Array]]
@@ -48,7 +43,7 @@ object KryoEncoding {
     Buffer.buffer(encodeToBytes(encodee))
   }
 
-  def decodeFromBytes[T](decodee:Array[Byte], clazz: Class[_]): T = {
+  def decodeFromBytes[T](decodee: Array[Byte], clazz: Class[_]): T = {
     kryo.readObject(new Input(decodee), clazz).asInstanceOf[T]
   }
 
@@ -56,7 +51,7 @@ object KryoEncoding {
     * Transform an incoming [[io.vertx.scala.core.eventbus.Message]] into a [[KryoMessage]]
     *
     * @param message the message to decodeFromMessage
-    * @param tag type tag, required to allow Kryo to figure out what class it should create
+    * @param tag     type tag, required to allow Kryo to figure out what class it should create
     * @tparam T the expected result of the decoding operation
     * @return the resulting KryoMessage containing the decoded value
     */
@@ -78,4 +73,8 @@ object KryoEncoding {
     message: Message[Buffer] =>
       handler.handle(KryoMessage(decodeFromBytes[T](message.body().getBytes, clazz), message))
   }
+}
+
+object KryoEncoding {
+  def apply(clazzes: Seq[Class[_]]): KryoEncoding = new KryoEncoding(clazzes)
 }

@@ -3,7 +3,6 @@ package io.vertx.scala.ddd.vertx
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.scala.core.eventbus.EventBus
-import io.vertx.scala.ddd.vertx.kryo.KryoEncoding.{decodeFromMessage, decoder, encodeToBuffer}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.runtime.universe._
@@ -15,7 +14,7 @@ package object kryo {
     *
     * @param eb
     */
-  implicit class KryoBus(eb: EventBus) {
+  implicit class KryoBus(eb: EventBus)(implicit encoding: KryoEncoding) {
 
     /**
       * Creates a consumer that will decodeFromMessage incoming Messages containing a Buffer into the target class.
@@ -25,7 +24,7 @@ package object kryo {
       * @tparam T deserialization target class
       */
     def consumerKryo[T: TypeTag](address: String, handler: Handler[KryoMessage[T]]): Unit = {
-      eb.consumer[Buffer](address, decoder[T](handler))
+      eb.consumer[Buffer](address, encoding.decoder[T](handler))
     }
 
     /**
@@ -37,7 +36,7 @@ package object kryo {
       * @return a future to wait on for cluster registration
       */
     def consumerKryoFuture[T: TypeTag](address: String, handler: Handler[KryoMessage[T]]): Future[Unit] = {
-      eb.consumer[Buffer](address, decoder[T](handler)).completionFuture()
+      eb.consumer[Buffer](address, encoding.decoder[T](handler)).completionFuture()
     }
 
     /**
@@ -47,7 +46,7 @@ package object kryo {
       * @param value   the payload that should be encoded to Kryo (as a Buffer)
       */
     def sendKryo(address: String, value: AnyRef): Unit = {
-      eb.send(address, encodeToBuffer(value))
+      eb.send(address, encoding.encodeToBuffer(value))
     }
 
     /**
@@ -58,8 +57,8 @@ package object kryo {
       * @return a future to wait on for the reply
       */
     def sendKryoFuture[R: TypeTag](address: String, value: AnyRef)(implicit executionContext: ExecutionContext): Future[KryoMessage[R]] = {
-      eb.sendFuture[Buffer](address, encodeToBuffer(value)).flatMap(r =>
-        Future.successful(decodeFromMessage[R](r)))
+      eb.sendFuture[Buffer](address, encoding.encodeToBuffer(value)).flatMap(r =>
+        Future.successful(encoding.decodeFromMessage[R](r)))
     }
   }
 
