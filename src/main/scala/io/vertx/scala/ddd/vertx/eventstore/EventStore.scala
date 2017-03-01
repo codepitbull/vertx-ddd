@@ -12,6 +12,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class EventStore(executor: WorkerExecutor, queue: SingleChronicleQueue, appender: ExcerptAppender, tailer: ExcerptTailer) {
 
+
   def read(): Future[(List[Array[Byte]], Long)] = {
     executor.executeBlocking[(List[Array[Byte]], Long)](
       () => {
@@ -27,6 +28,11 @@ class EventStore(executor: WorkerExecutor, queue: SingleChronicleQueue, appender
     appender.writeBytes(Bytes.elasticByteBuffer(bytes.size).write(bytes))
   }
 
+  def readOffset(): Long = tailer.index()
+
+  def moveToIndex(startIndex: Long): Unit = tailer.moveToIndex(startIndex)
+
+  def writeOffset(): Long = appender.lastIndexAppended()
 }
 
 object EventStore {
@@ -39,9 +45,9 @@ object EventStore {
         SingleChronicleQueueBuilder.binary(path).build()
       }
 
-      val trailer = queue.createTailer()
-      trailer.moveToIndex(startIndex)
-      (queue, queue.acquireAppender(), trailer)
+      val tailer = queue.createTailer()
+      tailer.moveToIndex(startIndex)
+      (queue, queue.acquireAppender(), tailer)
     }).flatMap(s => Future.successful(new EventStore(executor, s._1, s._2, s._3)))
   }
 }
