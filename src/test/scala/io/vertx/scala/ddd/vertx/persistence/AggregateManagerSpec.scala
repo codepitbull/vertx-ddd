@@ -22,4 +22,18 @@ class AggregateManagerSpec extends FlatSpec with Matchers{
     am.retrieve(1l) should equal(testObject)
   }
 
+
+  "A case class " should "be persistet, modified and loaded correctly" in {
+    val encoding = KryoEncoding(Seq(classOf[TestAggregate]))
+    val vertx = Vertx.vertx()
+    val executor = vertx.createSharedWorkerExecutor("test1")
+    implicit val am = Await.result(AggregateManager[TestAggregate](executor, "test1", encoding, true), 10 seconds)
+    val testObject = TestAggregate(1l, "hallohalloallalal")
+    testObject.persist
+    am.retrieve(1l) should equal(testObject)
+    val testObject2 = TestAggregate(1l, "hallohalloallalalhhhhh")
+    testObject2.persist
+    am.retrieve(1l) should equal(testObject2)
+  }
+
 }
