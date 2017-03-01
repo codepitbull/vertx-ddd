@@ -24,7 +24,7 @@ class AggregateManager[A <: AnyRef](val name: String, theMap: ChronicleMap[Aggre
 object AggregateManager {
   private val classLoaderMirror = runtimeMirror(getClass.getClassLoader)
 
-  def apply[A <: AnyRef : TypeTag](executor: WorkerExecutor, name: String, encoding: KryoEncoding)(implicit tag: TypeTag[A]): Future[AggregateManager[A]] = {
+  def apply[A <: AnyRef : TypeTag](executor: WorkerExecutor, name: String, encoding: KryoEncoding, temporary:Boolean = false)(implicit tag: TypeTag[A]): Future[AggregateManager[A]] = {
     val clazz = classLoaderMirror.runtimeClass(typeOf(tag))
 
     executor.executeBlocking[(AggregateManager[A])](() => {
@@ -33,7 +33,7 @@ object AggregateManager {
         .name(name)
         .averageValue("HAHAHAHAHAHHAHAHAHAHAHA".getBytes) //yes, there are better averages but I am lazy
         .entries(50000)
-        .createPersistedTo(new File(name))
+        .createPersistedTo(if(temporary) File.createTempFile(name, ".tmp") else new File(name))
       new AggregateManager[A](name, theMap, clazz, encoding)
     })
   }

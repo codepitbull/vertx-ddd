@@ -16,7 +16,7 @@ class AggregateManagerSpec extends FlatSpec with Matchers{
     val encoding = KryoEncoding(Seq(classOf[TestAggregate]))
     val vertx = Vertx.vertx()
     val executor = vertx.createSharedWorkerExecutor("test1")
-    implicit val am = Await.result(AggregateManager[TestAggregate](executor, "test1", encoding), 10 seconds)
+    implicit val am = Await.result(AggregateManager[TestAggregate](executor, "test1", encoding, true), 10 seconds)
     val testObject = TestAggregate(1l, "hallohalloallalal")
     testObject.persist
     am.retrieve(1l) should equal(testObject)
