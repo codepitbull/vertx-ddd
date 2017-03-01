@@ -13,7 +13,7 @@ import scala.concurrent.duration._
 class AggregateManagerSpec extends FlatSpec with Matchers{
 
   "A case class " should "be persistet and loaded correctly" in {
-    val encoding = KryoEncoding(Seq())
+    val encoding = KryoEncoding(Seq(classOf[TestAggregate]))
     val vertx = Vertx.vertx()
     val executor = vertx.createSharedWorkerExecutor("test1")
     implicit val am = Await.result(AggregateManager[TestAggregate](executor, "test1", encoding), 10 seconds)
