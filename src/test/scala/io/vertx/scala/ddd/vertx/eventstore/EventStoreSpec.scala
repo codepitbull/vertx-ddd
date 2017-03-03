@@ -50,7 +50,7 @@ class EventStoreSpec extends AsyncFlatSpec with Matchers {
       es.write(Array[Byte](4, 1, 0, 127, 13, 12, 0, 1, 0, 127, 13, 5))
       es.write(Array[Byte](5, 1, 0, 127, 13, 12, 0, 1, 0, 127, 13, 6))
       es.write(Array[Byte](6, 1, 0, 127, 13, 12, 0, 1, 0, 127, 13, 7))
-      es.moveToIndex(es.writeOffset())
+      es.moveReadIndexTo(es.writeOffset())
       es.write(Array[Byte](7, 1, 0, 127, 13, 12, 0, 1, 0, 127, 13, 8))
       es.write(Array[Byte](8, 1, 0, 127, 13, 12, 0, 1, 0, 127, 13, 9))
       es.write(Array[Byte](9, 1, 0, 127, 13, 12, 0, 1, 0, 127, 13, 10))

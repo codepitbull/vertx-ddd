@@ -10,11 +10,10 @@ class AggregateVerticle extends ScalaVerticle {
   override def start() = {
 
     val encoding = KryoEncoding(Seq())
-
-    vertx.sharedData().getClusterWideMapFuture[String, String]("hallo").onComplete(h => println(s"WOOHOO ${h.isFailure}"))
-
     val eventstore = EventStore(vertx.createSharedWorkerExecutor("eventstore"), "./queue", 0l)
 
     val aggregateManager = AggregateManager(vertx.createSharedWorkerExecutor("manager"), "manager", encoding)
+
+
   }
 }

@@ -12,7 +12,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class EventStore(executor: WorkerExecutor, queue: SingleChronicleQueue, appender: ExcerptAppender, tailer: ExcerptTailer) {
 
-
   def read(): Future[(List[Array[Byte]], Long)] = {
     executor.executeBlocking[(List[Array[Byte]], Long)](
       () => {
@@ -24,13 +23,18 @@ class EventStore(executor: WorkerExecutor, queue: SingleChronicleQueue, appender
       })
   }
 
-  def write(bytes: Array[Byte]): Unit = {
+  def write(bytes: Array[Byte]): Long = {
     appender.writeBytes(Bytes.elasticByteBuffer(bytes.size).write(bytes))
+    appender.lastIndexAppended()
   }
 
   def readOffset(): Long = tailer.index()
 
-  def moveToIndex(startIndex: Long): Unit = tailer.moveToIndex(startIndex)
+  //DANGEROUS: should never be called while reading is in progress as it happens on a different thread!
+  def moveReadIndexTo(startIndex: Long): EventStore = {
+    tailer.moveToIndex(startIndex)
+    this
+  }
 
   def writeOffset(): Long = appender.lastIndexAppended()
 }
