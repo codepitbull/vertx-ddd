@@ -43,7 +43,7 @@ class EventSourcingVerticle extends ScalaVerticle {
       .moveReadIndexTo(message.body())
       .read()
       .andThen{
-        case Success(r) => message.reply(r.toString())
+        case Success(r) => message.reply(Buffer.buffer(r._1.head))
         case Failure(t) => message.fail(0, "Unable to start replay")
       }
 
