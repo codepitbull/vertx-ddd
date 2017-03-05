@@ -10,7 +10,7 @@ class AggregateVerticle extends ScalaVerticle {
   override def start() = {
 
     val encoding = KryoEncoding(Seq())
-    val eventstore = EventStore(vertx.createSharedWorkerExecutor("eventstore"), "./queue", 0l)
+    val eventstore = EventStore(vertx.getOrCreateContext(),"./queue")
 
     val aggregateManager = AggregateManager(vertx.createSharedWorkerExecutor("manager"), "manager", encoding)
 
