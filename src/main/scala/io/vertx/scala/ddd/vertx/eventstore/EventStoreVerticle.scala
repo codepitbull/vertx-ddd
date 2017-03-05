@@ -5,6 +5,7 @@ import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.lang.scala.json.JsonObject
 import io.vertx.scala.core.eventbus.Message
 import io.vertx.scala.core.streams.Pump.pump
+import io.vertx.scala.ddd.vertx.eventstore.EventStoreVerticle._
 
 import scala.concurrent.Future
 
@@ -19,22 +20,24 @@ object EventStoreVerticle {
 
 class EventStoreVerticle extends ScalaVerticle {
   override def startFuture(): Future[Unit] = {
-    val eventstoreAddress = config.getString(EventStoreVerticle.ConfigAddress, EventStoreVerticle.AddressDefault)
-    val temporary = config.getBoolean(EventStoreVerticle.ConfigTemporary, EventStoreVerticle.TemporaryDefault)
+    val eventstoreAddress = config.getString(ConfigAddress, AddressDefault)
+    val temporary = config.getBoolean(ConfigTemporary, TemporaryDefault)
     val es = EventStore(vertx.getOrCreateContext(), "name", temporary)
     vertx.eventBus()
-      .localConsumer[JsonObject](s"${eventstoreAddress}.${EventStoreVerticle.AddressReplay}")
+      .localConsumer[JsonObject](s"${eventstoreAddress}.${AddressReplay}")
       .handler(handleReplay(es) _)
     vertx.eventBus()
-      .localConsumer[Buffer](s"${eventstoreAddress}.${EventStoreVerticle.AddressAppend}")
+      .localConsumer[Buffer](s"${eventstoreAddress}.${AddressAppend}")
       .handler(handleAppend(es) _)
     Future.successful(())
   }
 
 
   def handleReplay(es: EventStore)(message: Message[JsonObject]): Unit = {
-    val replaySource = es.readStreamFrom(message.body().getLong("offset"))
     val replayTarget = vertx.eventBus().sender[Buffer](message.body().getString("consumer"))
+    val replaySource = es.readStreamFrom(message.body().getLong("offset"))
+    //Send an empty buffer to signal the end of the stream
+    replaySource.endHandler(u => replayTarget.send(Buffer.buffer(0)))
     pump(replaySource, replayTarget).start()
   }
 

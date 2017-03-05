@@ -76,6 +76,7 @@ public class EventReadStream implements ReadStream<Buffer> {
         }
         else if (endHandler != null){
           ctx.runOnContext(r -> endHandler.handle(null));
+          return;
         }
         if(paused) {
           try {

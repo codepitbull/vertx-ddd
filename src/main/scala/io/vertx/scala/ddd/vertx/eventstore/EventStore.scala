@@ -6,7 +6,7 @@ import io.vertx.scala.core.Context
 import io.vertx.scala.core.streams.{ReadStream, WriteStream}
 
 class EventStore(eventStore: ChronicleEventStore) {
-  def write(bytes: Buffer): Long = eventStore.write(bytes)
+  def  write(bytes: Buffer): Long = eventStore.write(bytes)
 
   def readStreamFrom(offset: Long): ReadStream[Buffer] = ReadStream[Buffer](eventStore.readStreamFrom(offset))
 

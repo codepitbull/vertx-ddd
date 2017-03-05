@@ -2,6 +2,7 @@ package io.vertx.scala.ddd.vertx.eventstore
 
 import java.lang.Boolean.TRUE
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicReference
 
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.json.{Json, JsonObject}
@@ -21,13 +22,19 @@ class EventStoreVerticleSpec extends VerticleTesting[EventStoreVerticle] with Ma
 
     val testBuffer = Buffer.buffer("hello world")
 
-    val promise = Promise[String]
+
+    val result = new AtomicReference[String]
+    val promise = Promise[Unit]
 
     vertx
       .eventBus()
       .consumer[Buffer](consumerAddress)
       .handler(r => {
-        promise.success(r.body().toString)
+        if(r.body().length() > 0) {
+          result.set(r.body().toString)
+        } else {
+          promise.success(())
+        }
         r.reply(TRUE)
       })
       .completionFuture()
@@ -40,7 +47,7 @@ class EventStoreVerticleSpec extends VerticleTesting[EventStoreVerticle] with Ma
           })
       })
 
-    promise.future.flatMap(r => r should equal("hello world"))
+    promise.future.flatMap(r => result.get() should equal("hello world"))
   }
 
   override def config(): JsonObject = super.config().put(ConfigTemporary, true)
