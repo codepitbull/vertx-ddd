@@ -1,4 +1,4 @@
-package io.vertx.scala.ddd.vertx
+package io.vertx.scala.ddd.vertx.eventstore
 
 import java.lang.Boolean.TRUE
 import java.util.UUID
@@ -10,9 +10,9 @@ import org.scalatest.Matchers
 
 import scala.concurrent.Promise
 
-class EventSourcingVerticleSpec extends VerticleTesting[EventSourcingVerticle] with Matchers{
+class EventStoreVerticleSpec extends VerticleTesting[EventStoreVerticle] with Matchers{
 
-  import EventSourcingVerticle._
+  import io.vertx.scala.ddd.vertx.eventstore.EventStoreVerticle._
 
   "A message sent to the verticle" should "be persisted and read back" in {
     val consumerAddress= UUID.randomUUID().toString

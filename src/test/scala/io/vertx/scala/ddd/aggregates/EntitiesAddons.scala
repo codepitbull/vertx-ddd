@@ -1,6 +1,6 @@
 package io.vertx.scala.ddd.aggregates
 
-import io.vertx.scala.ddd.vertx.persistence.Persistence.{AggregateId, Persistent}
+import io.vertx.scala.ddd.vertx.aggregate.Persistence.{AggregateId, Persistent}
 
 
 

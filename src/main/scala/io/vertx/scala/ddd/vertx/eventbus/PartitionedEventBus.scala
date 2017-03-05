@@ -8,7 +8,7 @@ import scala.util.matching.Regex
 
 class PartitionedEventBus(vertx: Vertx, shardSize: Int) {
 
-  val AddressPattern:Regex = "persistence.(\\w+).(\\d+)".r
+  val AddressPattern:Regex = "aggregate.(\\w+).(\\d+)".r
   val AggregateId:String = "id"
 
   private val eventBus = vertx.eventBus()

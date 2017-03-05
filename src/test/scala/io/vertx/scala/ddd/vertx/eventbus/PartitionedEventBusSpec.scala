@@ -16,8 +16,8 @@ class PartitionedEventBusSpec extends FlatSpec with Matchers with Assertions {
     val messagingBus = PartitionedEventBus(vertx)
     vertx.eventBus().consumer[String]("agg0", {h:Message[String] => println("1 "+h.body())})
     vertx.eventBus().consumer[String]("agg1", {h:Message[String] => println("2 "+h.body())})
-    messagingBus.send("persistence.agg.10", "10")
-    messagingBus.send("persistence.agg.110", "110")
+    messagingBus.send("aggregate.agg.10", "10")
+    messagingBus.send("aggregate.agg.110", "110")
   }
 
 }
