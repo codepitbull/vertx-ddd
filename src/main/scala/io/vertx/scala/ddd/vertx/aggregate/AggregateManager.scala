@@ -15,17 +15,24 @@ class AggregateManager[A <: AnyRef](val name: String, theMap: ChronicleMap[Aggre
     if (id != OffsetPositon)
       theMap.put(id.asInstanceOf[java.lang.Long], encoding.encodeToBytes(aggregate))
     else
-      throw new IllegalArgumentException(s"An id value of (${id}) is not allowed as it is used for offset-tracking!")
+      throw new IllegalArgumentException(s"An id value of ($id) is not allowed as it is used for offset-tracking!")
   }
 
   def retrieve(id: AggregateId): A = encoding.decodeFromBytes(theMap.get(id), clazz)
 
   def close(): Unit = theMap.close()
 
-  def markLastOffset(offset: Long): Unit = {
+  def markLastOffset(offset: Long): Long = {
     val bb = ByteBuffer.allocate(8)
     bb.putLong(offset)
     theMap.put(OffsetPositon, bb.array())
+    offset
+  }
+
+  def lastOffset: Long = {
+    val bb = ByteBuffer.allocate(8)
+    bb.put(Option(theMap.get(OffsetPositon)).getOrElse(Array[Byte]()))
+    bb.getLong()
   }
 }
 

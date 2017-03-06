@@ -5,34 +5,46 @@ import java.util.UUID
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.lang.scala.json.Json
+import io.vertx.scala.core.eventbus.Message
 import io.vertx.scala.ddd.vertx.eventstore.EventStoreVerticle._
 import io.vertx.scala.ddd.vertx.kryo.KryoEncoding
 
-class AggregateVerticle extends ScalaVerticle {
+import scala.concurrent.{Future, Promise}
+import scala.util.{Failure, Success}
 
-  override def start() = {
-    val replaySource = config.getString("replaySourceAddress", s"${AddressDefault}.${AddressReplay}")
+import scala.reflect.runtime.universe._
 
+abstract class AggregateVerticle[T <: AnyRef : TypeTag] extends ScalaVerticle {
+
+  var encoding: KryoEncoding = _
+
+  override def startFuture(): Future[Unit] = {
+
+    encoding = KryoEncoding(classes)
+    val am = AggregateManager[T]("manager", encoding)
     val replayConsumerAddress = UUID.randomUUID().toString
-
-    val replayConsumerControlAddress = s"${replayConsumerAddress}.done"
+    val replaySourceAddress = config.getString("replaySourceAddress", s"${AddressDefault}.${AddressReplay}")
+    val replayStartMessage = Json.emptyObj().put("consumer", replayConsumerAddress).put("offset", am.lastOffset)
+    val promise = Promise[Unit]()
 
     vertx.eventBus()
       .localConsumer[Buffer](replayConsumerAddress)
-      .handler(b => println(b))
+      .handler(handleIncomingReplayAndCompletePromiseOnEnd(promise) _)
       .completionFuture()
+      .andThen {
+        case Success(s) => vertx.eventBus().send(replaySourceAddress, replayStartMessage)
+        case Failure(t) => promise.failure(t)
+      }
 
-    vertx.eventBus()
-      .localConsumer[Buffer](replayConsumerControlAddress)
-      .handler(b => println(b))
-      .completionFuture()
-
-    val replayStartMessage = Json.emptyObj().put("consumer", replayConsumerAddress).put("offset", 0l)
-
-    val encoding = KryoEncoding(Seq())
-
-    val aggregateManager = AggregateManager("manager", encoding)
-
-
+    promise.future
   }
+
+  def handleIncomingReplayAndCompletePromiseOnEnd(promise: Promise[Unit])(msg: Message[Buffer]): Unit = {
+    if (msg.body().length() == 0)
+      promise.success(())
+    else
+      println(encoding.decodeFromBytes(msg.body().getBytes, classes.head))
+  }
+
+  def classes: Seq[Class[_]]
 }

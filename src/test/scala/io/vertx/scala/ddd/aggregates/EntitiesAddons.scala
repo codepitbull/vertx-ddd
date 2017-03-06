@@ -7,7 +7,7 @@ import io.vertx.scala.ddd.vertx.aggregate.Persistence.{AggregateId, Persistent}
 object EntitiesAddons {
 
   implicit object TestAggregatePersistence extends Persistent[TestAggregate] {
-    override def id(x: TestAggregate) = x.id
+    override def id(x: TestAggregate): AggregateId = x.id
   }
 
 }
