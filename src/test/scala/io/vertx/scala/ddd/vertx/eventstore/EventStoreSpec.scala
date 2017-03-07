@@ -12,7 +12,7 @@ class EventStoreSpec extends FlatSpec with Matchers {
   "An array of bytes " should "be persistet and loaded back correctly" in {
     val vertx = Vertx.vertx()
     val ctx = vertx.getOrCreateContext()
-    val testBuffer = buffer(Array[Byte](0, 1, 0, 127, 13, 12, 0, 1, 0, 127, 13, 11))
+    val testBuffer = buffer("helo world 666".getBytes)
     val es = EventStore(ctx, "huhu", true)
     es.write(testBuffer)
     val promise = Promise[Buffer]
@@ -24,7 +24,7 @@ class EventStoreSpec extends FlatSpec with Matchers {
   "Reading from an offset postion" should "work" in {
     val vertx = Vertx.vertx()
     val ctx = vertx.getOrCreateContext()
-    val testBuffer = buffer("helo world 0".getBytes)
+    val testBuffer = buffer("helo world 666".getBytes)
     val es = EventStore(ctx, "huhu", true)
     es.write(buffer("helo world 1".getBytes))
     es.write(buffer("helo world 2".getBytes))

@@ -43,7 +43,7 @@ abstract class AggregateVerticle[T <: AnyRef : TypeTag] extends ScalaVerticle {
     if (msg.body().length() == 0)
       promise.success(())
     else
-      println(encoding.decodeFromBytes(msg.body().getBytes, classes.head))
+      println("IN "+encoding.decodeFromBytes(msg.body().getBytes, classes.head)+" "+msg.body().getBytes.length)
   }
 
   def classes: Seq[Class[_]]

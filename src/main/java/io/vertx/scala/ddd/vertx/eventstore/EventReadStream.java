@@ -4,9 +4,11 @@ import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.streams.ReadStream;
+import net.openhft.chronicle.bytes.Bytes;
 import net.openhft.chronicle.queue.ChronicleQueue;
 import net.openhft.chronicle.queue.ExcerptTailer;
 
+import java.nio.ByteBuffer;
 import java.util.Objects;
 
 public class EventReadStream implements ReadStream<Buffer> {
@@ -70,12 +72,15 @@ public class EventReadStream implements ReadStream<Buffer> {
       ExcerptTailer tailer = queue.createTailer();
       tailer.moveToIndex(offset);
       while(!interrupted()) {
-        String txt = tailer.readText();
+        Bytes<ByteBuffer> byteBufferBytes = Bytes.elasticByteBuffer();
+        Boolean txt = tailer.readBytes(byteBufferBytes);
         if(txt != null) {
-          ctx.runOnContext(r -> handler.handle(Buffer.buffer(txt)));
+          ctx.runOnContext(r -> handler.handle(Buffer.buffer(byteBufferBytes.toByteArray())));
         }
-        else if (endHandler != null){
-          ctx.runOnContext(r -> endHandler.handle(null));
+        else {
+          if (endHandler != null){
+            ctx.runOnContext(r -> endHandler.handle(null));
+          }
           return;
         }
         if(paused) {

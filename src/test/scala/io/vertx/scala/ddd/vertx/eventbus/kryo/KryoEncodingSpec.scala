@@ -20,14 +20,14 @@ class KryoEncodingSpec extends FlatSpec with Matchers with MockitoSugar {
 
   "A registered class" should "be encodable via encode" in {
     val encoding = KryoEncoding(Seq(classOf[Registered]))
-    val testValue = new Registered("test")
+    val testValue = new Registered(1l, "test")
     val res = encoding.decodeFromBytes[Registered](encoding.encodeToBytes(testValue), classOf[Registered])
     res should equal(testValue)
   }
 
   "A registered class" should "be encodable via encodeToBuffer" in {
     val encoding = KryoEncoding(Seq(classOf[Registered]))
-    val testValue = new Registered("test")
+    val testValue = new Registered(1l, "test")
     val buffer = encoding.encodeToBuffer(testValue)
     val mockMessage = mock[Message[Buffer]]
     when(mockMessage.body()).thenReturn(buffer)
@@ -37,7 +37,7 @@ class KryoEncodingSpec extends FlatSpec with Matchers with MockitoSugar {
 
   "A decoder-Handler" should "handle decoding" in {
     val encoding = KryoEncoding(Seq(classOf[Registered]))
-    val testValue = new Registered("test")
+    val testValue = new Registered(1l, "test")
     var receivedAndTestValueAreEqual = false
     val decodedHandler: Handler[KryoMessage[Registered]] =
       d => receivedAndTestValueAreEqual = testValue == d.body
@@ -55,4 +55,4 @@ class KryoEncodingSpec extends FlatSpec with Matchers with MockitoSugar {
 
 case class NotRegistered(name: String)
 
-case class Registered(name: String)
+case class Registered(id:Long, name: String)
