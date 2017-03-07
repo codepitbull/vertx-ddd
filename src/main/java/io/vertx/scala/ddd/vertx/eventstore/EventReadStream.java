@@ -73,19 +73,19 @@ public class EventReadStream implements ReadStream<Buffer> {
       tailer.moveToIndex(offset);
       while(!interrupted()) {
         Bytes<ByteBuffer> byteBufferBytes = Bytes.elasticByteBuffer();
-        Boolean txt = tailer.readBytes(byteBufferBytes);
-        if(txt != null) {
+        Boolean readBytes = tailer.readBytes(byteBufferBytes);
+        if(readBytes) {
           ctx.runOnContext(r -> handler.handle(Buffer.buffer(byteBufferBytes.toByteArray())));
         }
         else {
           if (endHandler != null){
             ctx.runOnContext(r -> endHandler.handle(null));
           }
-          return;
+          break;
         }
         if(paused) {
           try {
-            wait();
+            this.wait();
           } catch (InterruptedException e) {
             interrupt();
           }
