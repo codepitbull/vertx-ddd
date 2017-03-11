@@ -7,10 +7,8 @@ import com.twitter.chill.ScalaKryoInstantiator
 import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoEncoding.CodecName
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.eventbus.MessageCodec
-
-object KryoEncoding {
-  val CodecName = "k"
-}
+import io.vertx.scala.core.eventbus.EventBus
+import io.vertx.core.eventbus.{EventBus => JEventBus}
 
 /**
   * A codec implementation to allow case classes to be transfered via the [[io.vertx.scala.core.eventbus.EventBus]].
@@ -30,6 +28,11 @@ class KryoEncoding(clazzes: Seq[Class[_]]) extends MessageCodec[Object, Object] 
   clazzes.foreach(kryo.register(_, kryo.getNextRegistrationId))
   val output = new Output(new ByteArrayOutputStream)
   val input = new Input()
+
+  def register(eventBus: EventBus):KryoEncoding = {
+    eventBus.asJava.asInstanceOf[JEventBus].registerCodec(this)
+    this
+  }
 
   override def transform(s: Object): Object = s
 
@@ -63,4 +66,10 @@ class KryoEncoding(clazzes: Seq[Class[_]]) extends MessageCodec[Object, Object] 
     runtimeMirror(v.getClass.getClassLoader).classSymbol(v).isCaseClass
   }
 
+}
+
+object KryoEncoding {
+  val CodecName = "k"
+
+  def apply(clazzes: Seq[Class[_]]): KryoEncoding = new KryoEncoding(clazzes)
 }

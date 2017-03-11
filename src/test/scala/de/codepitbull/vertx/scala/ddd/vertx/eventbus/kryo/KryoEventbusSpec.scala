@@ -12,9 +12,8 @@ import scala.concurrent.Promise
 class KryoEventbusSpec extends AsyncFlatSpec with Matchers {
 
   "Registering nom-case class" should "fail" in {
-    val vertx = Vertx.vertx()
     assertThrows[IllegalArgumentException] {
-      vertx.eventBus().asJava.asInstanceOf[JEventBus].registerCodec(new KryoEncoding(Seq(classOf[NonCaseClass])))
+      new KryoEncoding(Seq(classOf[NonCaseClass]))
     }
   }
 
@@ -30,8 +29,8 @@ class KryoEventbusSpec extends AsyncFlatSpec with Matchers {
     val test = ACaseClass("12", Some(1))
     val vertx = Vertx.vertx()
     val promise = Promise[AnyRef]
-    vertx.eventBus().asJava.asInstanceOf[JEventBus].registerCodec(new KryoEncoding(Seq(classOf[ACaseClass])))
-    vertx.eventBus().consumer[AnyRef]("testAddr")
+    KryoEncoding(Seq(classOf[ACaseClass])).register(vertx.eventBus())
+    vertx.eventBus().consumer[ACaseClass]("testAddr")
       .handler(a => promise.success(a.body()))
     vertx.eventBus().sender("testAddr", DeliveryOptions().setCodecName(CodecName)).send(test)
     promise.future.flatMap(r => r should equal(test))
