@@ -18,7 +18,7 @@ class AggregateManager[A <: AnyRef](val name: String, theMap: ChronicleMap[Aggre
       throw new IllegalArgumentException(s"An id value of ($id) is not allowed as it is used for offset-tracking!")
   }
 
-//  def retrieve(id: AggregateId): A = encoding.decodeFromBytes(theMap.get(id))
+  def retrieve(id: AggregateId): A = encoding.decodeFromBytes(theMap.get(id)).asInstanceOf[A]
 
   def close(): Unit = theMap.close()
 
