@@ -3,7 +3,7 @@ import sbt._
 object Version {
   final val Scala        = "2.12.1"
   final val ScalaTest    = "3.0.0"
-  final val Vertx        = "3.4.0-SNAPSHOT"
+  final val Vertx        = "3.4.1-SNAPSHOT"
   final val OpenHftQueue = "4.5.23"
   final val OpenHftMap   = "3.12.0"
   final val Jackson      = "2.8.7"
