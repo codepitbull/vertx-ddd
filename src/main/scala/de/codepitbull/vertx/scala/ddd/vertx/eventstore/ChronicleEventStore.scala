@@ -1,6 +1,7 @@
 package de.codepitbull.vertx.scala.ddd.vertx.eventstore
 
 import java.nio.file.Files
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
@@ -37,43 +38,41 @@ object ChronicleEventStore {
 }
 
 class EventReadStream(val ctx: Context, val queue: ChronicleQueue, val offset: Long) extends JReadStream[Buffer] {
-  private var handler: Handler[Buffer] = _
-  private var exceptionHandler: Handler[Throwable] = _
-  private var endHandler: Handler[Void] = _
-  private var paused = false
+  private var exceptionHandler = new AtomicReference[Handler[Throwable]]
+  private val endHandler = new AtomicReference[Handler[Void]]
+  private val paused = new AtomicBoolean(false)
   private var thread: TailThread = _
 
 
-  override def exceptionHandler(handler: Handler[Throwable]): JReadStream[Buffer] = {
-    this.exceptionHandler = exceptionHandler
+  override def exceptionHandler(exceptionHandler: Handler[Throwable]): JReadStream[Buffer] = {
+    this.exceptionHandler.set(exceptionHandler)
     this
   }
 
   override def handler(handler: Handler[Buffer]): JReadStream[Buffer] = {
-    if (this.handler != null) throw new IllegalStateException("Already started")
-    this.handler = handler
-    thread = new TailThread
+    if (this.thread != null) throw new IllegalStateException("Already started")
+    thread = new TailThread(handler)
     thread.start()
     this
   }
 
   def pause: JReadStream[Buffer] = {
-    paused = true
+    paused.set(true)
     this
   }
 
   def resume: JReadStream[Buffer] = {
-    paused = false
+    paused.set(false)
     thread.notify()
     this
   }
 
   override def endHandler(endHandler: Handler[Void]): JReadStream[Buffer] = {
-    this.endHandler = endHandler
+    this.endHandler.set(endHandler)
     this
   }
 
-  private class TailThread extends Thread {
+  private class TailThread(handler: Handler[Buffer]) extends Thread {
     override def run() {
       val tailer = queue.createTailer
       tailer.moveToIndex(offset)
@@ -82,11 +81,12 @@ class EventReadStream(val ctx: Context, val queue: ChronicleQueue, val offset: L
         val readBytes = tailer.readBytes(byteBufferBytes)
         if (readBytes) ctx.runOnContext(r => handler.handle(Buffer.buffer(byteBufferBytes.toByteArray)))
         else {
-          if (endHandler != null) ctx.runOnContext(r => endHandler.handle(null))
+          val eh = endHandler.get()
+          if (eh != null) ctx.runOnContext(r => eh.handle(null))
           interrupt()
         }
 
-        if (paused) try
+        if (paused.get()) try
           this.wait()
         catch {
           case e: InterruptedException => interrupt()
