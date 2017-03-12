@@ -3,28 +3,38 @@ package de.codepitbull.vertx.scala.ddd.vertx.kryo
 import java.io.ByteArrayOutputStream
 
 import com.esotericsoftware.kryo.io.{Input, Output}
-import com.twitter.chill.ScalaKryoInstantiator
+import com.twitter.chill.{Kryo, ScalaKryoInstantiator}
 
+/**
+  * Makes Kryo-encoding magically Thread-safe.
+  */
 class KryoEncoder {
-  private val kryo = new ScalaKryoInstantiator().newKryo()
+  private val tl = new ThreadLocal[Tuple3[Kryo, Input, Output]] {
+    override def initialValue(): Tuple3[Kryo, Input, Output] = {
+      val kryo = new ScalaKryoInstantiator().newKryo()
+      val output = new Output(new ByteArrayOutputStream)
+      val input = new Input()
+      (kryo, input, output)
+    }
+  }
 
-  val output = new Output(new ByteArrayOutputStream)
-  val input = new Input()
 
   def decodeFromBytes(bytes: Array[Byte]): Object = {
-    input.setBuffer(bytes)
-    kryo.readClassAndObject(input)
+    val k = tl.get()
+    k._2.setBuffer(bytes)
+    k._1.readClassAndObject(k._2)
   }
 
   def encodeToBytes(s: Object): Array[Byte] = {
-    kryo.writeClassAndObject(output, s)
-    val ret = output.toBytes
-    output.clear()
+    val k = tl.get()
+    k._1.writeClassAndObject(k._3, s)
+    val ret = k._3.toBytes
+    k._3.clear()
     ret
   }
 
 }
 
-object KryoEncoder{
+object KryoEncoder {
   def apply(): KryoEncoder = new KryoEncoder()
 }

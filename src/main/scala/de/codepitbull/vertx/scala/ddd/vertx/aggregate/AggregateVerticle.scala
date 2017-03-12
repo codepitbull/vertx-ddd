@@ -15,10 +15,9 @@ import scala.util.{Failure, Success}
 
 abstract class AggregateVerticle[T <: AnyRef : TypeTag] extends ScalaVerticle {
 
-  var encoder: KryoEncoder = _
+  val encoder: KryoEncoder
 
   override def startFuture(): Future[Unit] = {
-    encoder = KryoEncoder()
     val am = AggregateManager[T]("manager", encoder)
     val replayConsumerAddress = UUID.randomUUID().toString
     val replaySourceAddress = config.getString("replaySourceAddress", s"${AddressDefault}.${AddressReplay}")
@@ -43,6 +42,4 @@ abstract class AggregateVerticle[T <: AnyRef : TypeTag] extends ScalaVerticle {
     else
       println("IN " + encoder.decodeFromBytes(msg.body().getBytes) + " " + msg.body().getBytes.length)
   }
-
-  def classes: Seq[Class[_]]
 }

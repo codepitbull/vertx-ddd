@@ -13,8 +13,7 @@ import net.openhft.chronicle.bytes.Bytes
 import net.openhft.chronicle.queue.impl.single.SingleChronicleQueueBuilder
 import net.openhft.chronicle.queue.{ChronicleQueue, ExcerptAppender}
 
-class ChronicleEventStore(ctx: Context, path: String, temporary: Boolean) {
-  val encoder = KryoEncoder()
+class ChronicleEventStore(ctx: Context, path: String, encoder: KryoEncoder, temporary: Boolean) {
 
   private var queue = if (temporary)
     SingleChronicleQueueBuilder.binary(Files.createTempDirectory(path)).build
@@ -27,7 +26,7 @@ class ChronicleEventStore(ctx: Context, path: String, temporary: Boolean) {
     appender.lastIndexAppended
   }
 
-  def readStreamFrom(offset: Long): ReadStream[Object] = ReadStream(EventReadStream(ctx, queue, offset))
+  def readStreamFrom(offset: Long): ReadStream[Object] = ReadStream(EventReadStream(ctx, queue, offset, encoder))
 
   def writeStream: WriteStream[Buffer] = WriteStream(EventWriteStream(ctx, queue))
 
@@ -37,10 +36,10 @@ class ChronicleEventStore(ctx: Context, path: String, temporary: Boolean) {
 }
 
 object ChronicleEventStore {
-  def apply(ctx: Context, path: String, temporary: Boolean = true): ChronicleEventStore = new ChronicleEventStore(ctx, path, temporary)
+  def apply(ctx: Context, path: String, encoder: KryoEncoder, temporary: Boolean = true): ChronicleEventStore = new ChronicleEventStore(ctx, path, encoder, temporary)
 }
 
-class EventReadStream(ctx: Context, queue: ChronicleQueue, offset: Long) extends JReadStream[Object] {
+class EventReadStream(ctx: Context, queue: ChronicleQueue, offset: Long, encoder: KryoEncoder) extends JReadStream[Object] {
   private val exceptionHandler = new AtomicReference[Handler[Throwable]]
   private val endHandler = new AtomicReference[Handler[Void]]
   private val paused = new AtomicBoolean(false)
@@ -53,7 +52,7 @@ class EventReadStream(ctx: Context, queue: ChronicleQueue, offset: Long) extends
 
   override def handler(handler: Handler[Object]): JReadStream[Object] = {
     if (this.thread != null) throw new IllegalStateException("Already started")
-    thread = new TailThread(handler)
+    thread = new TailThread(handler, encoder)
     thread.start()
     this
   }
@@ -74,9 +73,8 @@ class EventReadStream(ctx: Context, queue: ChronicleQueue, offset: Long) extends
     this
   }
 
-  private class TailThread(handler: Handler[Object]) extends Thread {
+  private class TailThread(handler: Handler[Object], encoder: KryoEncoder) extends Thread {
     override def run() {
-      val encoder = KryoEncoder()
       val tailer = queue.createTailer
       tailer.moveToIndex(offset)
       while (!isInterrupted) {
@@ -101,8 +99,8 @@ class EventReadStream(ctx: Context, queue: ChronicleQueue, offset: Long) extends
 }
 
 object EventReadStream {
-  def apply(ctx: Context, queue: ChronicleQueue, offset: Long): EventReadStream =
-    new EventReadStream(ctx, queue, offset)
+  def apply(ctx: Context, queue: ChronicleQueue, offset: Long, encoder: KryoEncoder): EventReadStream =
+    new EventReadStream(ctx, queue, offset, encoder)
 }
 
 class EventWriteStream(val ctx: Context, val queue: ChronicleQueue) extends JWriteStream[Buffer] {

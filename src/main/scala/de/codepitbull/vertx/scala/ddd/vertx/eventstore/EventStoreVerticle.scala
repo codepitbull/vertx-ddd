@@ -1,6 +1,7 @@
 package de.codepitbull.vertx.scala.ddd.vertx.eventstore
 
 import de.codepitbull.vertx.scala.ddd.vertx.eventstore.EventStoreVerticle._
+import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoEncoder
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.lang.scala.json.JsonObject
@@ -22,7 +23,8 @@ class EventStoreVerticle extends ScalaVerticle {
   override def startFuture(): Future[Unit] = {
     val eventstoreAddress = config.getString(ConfigAddress, AddressDefault)
     val temporary = config.getBoolean(ConfigTemporary, TemporaryDefault)
-    val es = ChronicleEventStore(vertx.getOrCreateContext(), "name", temporary)
+    val encoder = KryoEncoder()
+    val es = ChronicleEventStore(vertx.getOrCreateContext(), "name", encoder, temporary)
     vertx.eventBus()
       .localConsumer[JsonObject](s"${eventstoreAddress}.${AddressReplay}")
       .handler(handleReplay(es) _)
@@ -46,6 +48,6 @@ class EventStoreVerticle extends ScalaVerticle {
     message.reply(es.write(message.body()).asInstanceOf[AnyRef])
   }
 
-  def classes:Seq[Class[_]] = Seq()
+  def classes: Seq[Class[_]] = Seq()
 }
 

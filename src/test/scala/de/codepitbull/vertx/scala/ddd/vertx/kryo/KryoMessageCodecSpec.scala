@@ -12,7 +12,8 @@ class KryoMessageCodecSpec extends AsyncFlatSpec with Matchers {
 
   "A case class" should "be (de)serializable directly" in {
     val test = ACaseClass("12", Some(1))
-    val codec = KryoMessageCodec()
+    val encoder = KryoEncoder()
+    val codec = KryoMessageCodec(encoder)
     val encoded = Buffer.buffer()
     codec.encodeToWire(encoded, test)
     val decoded = codec.decodeFromWire(0, encoded)
@@ -23,7 +24,8 @@ class KryoMessageCodecSpec extends AsyncFlatSpec with Matchers {
     val test = ACaseClass("12", Some(1))
     val vertx = Vertx.vertx()
     val promise = Promise[AnyRef]
-    KryoMessageCodec().register(vertx.eventBus())
+    val encoder = KryoEncoder()
+    KryoMessageCodec(encoder).register(vertx.eventBus())
     vertx.eventBus().consumer[ACaseClass]("testAddr")
       .handler(a => promise.success(a.body()))
     vertx.eventBus().sender("testAddr", DeliveryOptions().setCodecName(CodecName)).send(test)

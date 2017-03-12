@@ -3,12 +3,10 @@ package de.codepitbull.vertx.scala.ddd.vertx.kryo
 import java.io.ByteArrayOutputStream
 
 import com.esotericsoftware.kryo.io.{Input, Output}
-import com.twitter.chill.{Kryo, ScalaKryoInstantiator}
 import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoMessageCodec.CodecName
 import io.vertx.core.buffer.Buffer
-import io.vertx.core.eventbus.MessageCodec
+import io.vertx.core.eventbus.{MessageCodec, EventBus => JEventBus}
 import io.vertx.scala.core.eventbus.EventBus
-import io.vertx.core.eventbus.{EventBus => JEventBus}
 
 /**
   * A codec implementation to allow case classes to be transfered via the [[io.vertx.scala.core.eventbus.EventBus]].
@@ -17,15 +15,12 @@ import io.vertx.core.eventbus.{EventBus => JEventBus}
   *
   * This class uses ThreadLocals to protect the non-thread-safe Kryo-objects.
   */
-class KryoMessageCodec extends MessageCodec[Object, Object] {
-  private val krTl = new ThreadLocal[KryoEncoder] {
-    override def initialValue(): KryoEncoder = new KryoEncoder()
-  }
+class KryoMessageCodec(encoder: KryoEncoder) extends MessageCodec[Object, Object] {
 
   private val output = new Output(new ByteArrayOutputStream)
   private val input = new Input()
 
-  def register(eventBus: EventBus):KryoMessageCodec = {
+  def register(eventBus: EventBus): KryoMessageCodec = {
     eventBus.asJava.asInstanceOf[JEventBus].registerCodec(this)
     this
   }
@@ -33,13 +28,13 @@ class KryoMessageCodec extends MessageCodec[Object, Object] {
   override def transform(s: Object): Object = s
 
   override def decodeFromWire(pos: Int, buffer: Buffer): Object = {
-    krTl.get().decodeFromBytes(buffer.getBytes(pos, buffer.length()))
+    encoder.decodeFromBytes(buffer.getBytes(pos, buffer.length()))
   }
 
   override def name(): String = CodecName
 
   override def encodeToWire(buffer: Buffer, s: Object): Unit = {
-    buffer.appendBytes(krTl.get().encodeToBytes(s))
+    buffer.appendBytes(encoder.encodeToBytes(s))
   }
 
   override def systemCodecID(): Byte = -1
@@ -54,6 +49,6 @@ class KryoMessageCodec extends MessageCodec[Object, Object] {
 object KryoMessageCodec {
   val CodecName = "k"
 
-  def apply(): KryoMessageCodec = new KryoMessageCodec()
+  def apply(encoder: KryoEncoder): KryoMessageCodec = new KryoMessageCodec(encoder)
 }
 
