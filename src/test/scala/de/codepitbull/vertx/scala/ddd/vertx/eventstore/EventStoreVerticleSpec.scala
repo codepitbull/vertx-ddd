@@ -5,22 +5,25 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
 
 import de.codepitbull.vertx.scala.ddd.VerticleTesting
-import io.vertx.core.buffer.Buffer
+import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoMessageCodec.CodecName
+import de.codepitbull.vertx.scala.ddd.vertx.kryo.{KryoEncoder, KryoMessageCodec}
 import io.vertx.lang.scala.json.{Json, JsonObject}
+import io.vertx.scala.core.eventbus.DeliveryOptions
 import org.scalatest.Matchers
 
 import scala.concurrent.Promise
 
-class EventStoreVerticleSpec extends VerticleTesting[EventStoreVerticle] with Matchers{
+class EventStoreVerticleSpec extends VerticleTesting[EventStoreVerticle] with Matchers {
 
   import EventStoreVerticle._
 
   "A message sent to the verticle" should "be persisted and read back" in {
-    val consumerAddress= UUID.randomUUID().toString
-    val appenderSender = vertx.eventBus().sender[Buffer](s"${AddressDefault}.${AddressAppend}")
+    KryoMessageCodec(KryoEncoder()).register(vertx.eventBus())
+    val consumerAddress = UUID.randomUUID().toString
+    val appenderSender = vertx.eventBus().sender[Object](s"${AddressDefault}.${AddressAppend}", DeliveryOptions().setCodecName(CodecName))
     val replaySender = vertx.eventBus().sender[JsonObject](s"${AddressDefault}.${AddressReplay}")
 
-    val testBuffer = Buffer.buffer("hello world")
+    val testEvent = TestEvent("hello world")
 
 
     val result = new AtomicReference[String]
@@ -28,19 +31,18 @@ class EventStoreVerticleSpec extends VerticleTesting[EventStoreVerticle] with Ma
 
     vertx
       .eventBus()
-      .consumer[Buffer](consumerAddress)
+      .consumer[Object](consumerAddress)
       .handler(r => {
-        if(r.body().length() > 0) {
-          result.set(r.body().toString)
-        } else {
-          promise.success(())
+        r.body() match {
+          case StreamFinish() => promise.success(())
+          case TestEvent(s) => result.set(s)
         }
         r.reply(TRUE)
       })
       .completionFuture()
       .flatMap(r => {
         appenderSender
-          .sendFuture[Long](testBuffer)
+          .sendFuture[Long](testEvent)
           .map(r => {
             replaySender
               .send(Json.emptyObj().put("consumer", consumerAddress).put("offset", 0l))
@@ -52,3 +54,5 @@ class EventStoreVerticleSpec extends VerticleTesting[EventStoreVerticle] with Ma
 
   override def config(): JsonObject = super.config().put(ConfigTemporary, true)
 }
+
+case class TestEvent(hello: String)

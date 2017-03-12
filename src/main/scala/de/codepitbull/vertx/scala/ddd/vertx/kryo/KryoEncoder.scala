@@ -18,7 +18,6 @@ class KryoEncoder {
     }
   }
 
-
   def decodeFromBytes(bytes: Array[Byte]): Object = {
     val k = tl.get()
     k._2.setBuffer(bytes)

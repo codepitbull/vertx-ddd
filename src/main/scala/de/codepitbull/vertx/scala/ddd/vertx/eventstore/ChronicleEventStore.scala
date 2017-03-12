@@ -43,7 +43,7 @@ class EventReadStream(ctx: Context, queue: ChronicleQueue, offset: Long, encoder
   private val exceptionHandler = new AtomicReference[Handler[Throwable]]
   private val endHandler = new AtomicReference[Handler[Void]]
   private val paused = new AtomicBoolean(false)
-  private var thread: TailThread = _
+  private var thread = new AtomicReference[TailThread]
 
   override def exceptionHandler(exceptionHandler: Handler[Throwable]): JReadStream[Object] = {
     this.exceptionHandler.set(exceptionHandler)
@@ -51,9 +51,9 @@ class EventReadStream(ctx: Context, queue: ChronicleQueue, offset: Long, encoder
   }
 
   override def handler(handler: Handler[Object]): JReadStream[Object] = {
-    if (this.thread != null) throw new IllegalStateException("Already started")
-    thread = new TailThread(handler, encoder)
-    thread.start()
+    if(!thread.compareAndSet(null, new TailThread(handler, encoder)))
+      throw new IllegalStateException("Already started")
+    thread.get().start()
     this
   }
 
@@ -80,7 +80,10 @@ class EventReadStream(ctx: Context, queue: ChronicleQueue, offset: Long, encoder
       while (!isInterrupted) {
         val byteBufferBytes = Bytes.elasticByteBuffer
         val readBytes = tailer.readBytes(byteBufferBytes)
-        if (readBytes) ctx.runOnContext(r => handler.handle(encoder.decodeFromBytes(byteBufferBytes.toByteArray)))
+        if (readBytes) {
+          val decoded = encoder.decodeFromBytes(byteBufferBytes.toByteArray)
+          ctx.runOnContext(r => handler.handle(decoded))
+        }
         else {
           val eh = endHandler.get()
           if (eh != null) ctx.runOnContext(r => eh.handle(null))

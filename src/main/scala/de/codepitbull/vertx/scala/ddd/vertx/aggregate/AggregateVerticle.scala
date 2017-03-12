@@ -3,6 +3,7 @@ package de.codepitbull.vertx.scala.ddd.vertx.aggregate
 import java.util.UUID
 
 import de.codepitbull.vertx.scala.ddd.vertx.eventstore.EventStoreVerticle._
+import de.codepitbull.vertx.scala.ddd.vertx.eventstore.StreamFinish
 import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoEncoder
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.ScalaVerticle
@@ -25,7 +26,7 @@ abstract class AggregateVerticle[T <: AnyRef : TypeTag] extends ScalaVerticle {
     val promise = Promise[Unit]()
 
     vertx.eventBus()
-      .localConsumer[Buffer](replayConsumerAddress)
+      .localConsumer[Object](replayConsumerAddress)
       .handler(handleIncomingReplayAndCompletePromiseOnEnd(promise) _)
       .completionFuture()
       .andThen {
@@ -36,10 +37,10 @@ abstract class AggregateVerticle[T <: AnyRef : TypeTag] extends ScalaVerticle {
     promise.future
   }
 
-  def handleIncomingReplayAndCompletePromiseOnEnd(promise: Promise[Unit])(msg: Message[Buffer]): Unit = {
-    if (msg.body().length() == 0)
-      promise.success(())
-    else
-      println("IN " + encoder.decodeFromBytes(msg.body().getBytes) + " " + msg.body().getBytes.length)
+  def handleIncomingReplayAndCompletePromiseOnEnd(promise: Promise[Unit])(msg: Message[Object]): Unit = {
+    msg.body() match {
+      case StreamFinish() => promise.success(())
+      case _ => println("FFFFF")
+    }
   }
 }
