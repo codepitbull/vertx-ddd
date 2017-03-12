@@ -3,7 +3,7 @@ package de.codepitbull.vertx.scala.ddd.vertx.aggregate
 import java.util.UUID
 
 import de.codepitbull.vertx.scala.ddd.eventstore.EventStoreVerticle._
-import de.codepitbull.vertx.scala.ddd.vertx.kryo.{KryoEncoder, KryoMessageCodec}
+import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoEncoder
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.lang.scala.json.Json
@@ -18,7 +18,7 @@ abstract class AggregateVerticle[T <: AnyRef : TypeTag] extends ScalaVerticle {
   var encoder: KryoEncoder = _
 
   override def startFuture(): Future[Unit] = {
-    encoder = new KryoMessageCodec(classes).encoder
+    encoder = KryoEncoder(classes)
     val am = AggregateManager[T]("manager", encoder)
     val replayConsumerAddress = UUID.randomUUID().toString
     val replaySourceAddress = config.getString("replaySourceAddress", s"${AddressDefault}.${AddressReplay}")

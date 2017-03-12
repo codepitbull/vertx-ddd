@@ -3,14 +3,14 @@ package de.codepitbull.vertx.scala.ddd.vertx.aggregate
 import de.codepitbull.vertx.scala.ddd.aggregates.EntitiesAddons._
 import de.codepitbull.vertx.scala.ddd.aggregates.TestAggregate
 import de.codepitbull.vertx.scala.ddd.vertx.aggregate.Persistence._
-import de.codepitbull.vertx.scala.ddd.vertx.kryo.{KryoMessageCodec, KryoMessageCodec$}
+import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoEncoder
 import org.scalatest.{FlatSpec, Matchers}
 
 class AggregateManagerSpec extends FlatSpec with Matchers {
 
   "A case class " should "be persistet and loaded correctly" in {
-    val encoding = KryoMessageCodec(Seq(classOf[TestAggregate]))
-    implicit val am = AggregateManager[TestAggregate]("test1", encoding.encoder, true)
+    val encoder = KryoEncoder(Seq(classOf[TestAggregate]))
+    implicit val am = AggregateManager[TestAggregate]("test1", encoder, true)
     val testObject = TestAggregate(1l, "hallohalloallalal")
     testObject.persist
     am.retrieve(1l) should equal(testObject)
@@ -18,8 +18,8 @@ class AggregateManagerSpec extends FlatSpec with Matchers {
 
 
   "A case class " should "be persistet, modified and loaded correctly" in {
-    val encoding = KryoMessageCodec(Seq(classOf[TestAggregate]))
-    implicit val am = AggregateManager[TestAggregate]("test1", encoding.encoder, true)
+    val encoder = KryoEncoder(Seq(classOf[TestAggregate]))
+    implicit val am = AggregateManager[TestAggregate]("test1", encoder, true)
     val testObject = TestAggregate(1l, "hallohalloallalal")
     testObject.persist
     am.retrieve(1l) should equal(testObject)
@@ -30,8 +30,8 @@ class AggregateManagerSpec extends FlatSpec with Matchers {
 
 
   "Using the reserved offset-tracking-id" should "lead to an IllegalArgumentException" in {
-    val encoding = KryoMessageCodec(Seq(classOf[TestAggregate]))
-    implicit val am = AggregateManager[TestAggregate]("test1", encoding.encoder, true)
+    val encoder = KryoEncoder(Seq(classOf[TestAggregate]))
+    implicit val am = AggregateManager[TestAggregate]("test1", encoder, true)
     val testObject = TestAggregate(AggregateManager.OffsetPositon, "hallohalloallalal")
     intercept[IllegalArgumentException](testObject.persist)
   }

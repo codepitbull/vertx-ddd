@@ -9,7 +9,7 @@ import org.scalatest.{AsyncFlatSpec, Matchers}
 
 import scala.concurrent.Promise
 
-class KryoEventbusSpec extends AsyncFlatSpec with Matchers {
+class KryoMessageCodecSpec extends AsyncFlatSpec with Matchers {
 
   "Registering nom-case class" should "fail" in {
     assertThrows[IllegalArgumentException] {
@@ -37,17 +37,7 @@ class KryoEventbusSpec extends AsyncFlatSpec with Matchers {
     promise.future.flatMap(r => r should equal(test))
   }
 
-
-  "A case class" should "be (de)serializable using the raw decoder" in {
-    val test = ACaseClass("12", Some(1))
-    val codec = KryoMessageCodec(Seq(classOf[ACaseClass])).encoder
-    val encoded = codec.encodeToBytes(test)
-    val decoded = codec.decodeFromBytes(encoded)
-    test should equal(decoded)
-  }
-
 }
 
-case class ACaseClass(name: String, value: Option[Int])
 
-class NonCaseClass(name: String, value: Option[Int])
+

@@ -2,17 +2,14 @@ package de.codepitbull.vertx.scala.ddd.eventstore
 
 import java.nio.file.Files
 
-import io.vertx.core.buffer.Buffer
 import io.vertx.core.Handler
-import io.vertx.core.streams.{ReadStream => JReadStream}
-import io.vertx.core.streams.{WriteStream => JWriteStream}
+import io.vertx.core.buffer.Buffer
+import io.vertx.core.streams.{ReadStream => JReadStream, WriteStream => JWriteStream}
 import io.vertx.scala.core.Context
 import io.vertx.scala.core.streams.{ReadStream, WriteStream}
 import net.openhft.chronicle.bytes.Bytes
 import net.openhft.chronicle.queue.impl.single.SingleChronicleQueueBuilder
 import net.openhft.chronicle.queue.{ChronicleQueue, ExcerptAppender}
-
-import scala.collection.Iterator.continually
 
 class ChronicleEventStore(ctx: Context, path: String, temporary: Boolean) {
   private var queue = if (temporary)
@@ -80,7 +77,7 @@ class EventReadStream(val ctx: Context, val queue: ChronicleQueue, val offset: L
     override def run() {
       val tailer = queue.createTailer
       tailer.moveToIndex(offset)
-      while(!isInterrupted) {
+      while (!isInterrupted) {
         val byteBufferBytes = Bytes.elasticByteBuffer
         val readBytes = tailer.readBytes(byteBufferBytes)
         if (readBytes) ctx.runOnContext(r => handler.handle(Buffer.buffer(byteBufferBytes.toByteArray)))

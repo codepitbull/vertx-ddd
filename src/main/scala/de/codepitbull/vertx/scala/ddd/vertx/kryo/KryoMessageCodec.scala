@@ -18,18 +18,13 @@ import io.vertx.core.eventbus.{EventBus => JEventBus}
   * This class uses ThreadLocals to protect the non-thread-safe Kryo-objects.
   */
 class KryoMessageCodec(clazzes: Seq[Class[_]]) extends MessageCodec[Object, Object] {
-  val nonCaseClasses = clazzes.filter(!isCaseClass(_))
-  if (nonCaseClasses.nonEmpty)
-    throw new IllegalArgumentException(s"The following classes aren't case classes: ${nonCaseClasses.mkString("/")}")
-  private val kr = new ScalaKryoInstantiator().setRegistrationRequired(true)
+  validateCaseClasses(clazzes)
   private val krTl = new ThreadLocal[KryoEncoder] {
-    override def initialValue(): KryoEncoder = new KryoEncoder(kr.newKryo(), clazzes)
+    override def initialValue(): KryoEncoder = new KryoEncoder(clazzes)
   }
 
-  val output = new Output(new ByteArrayOutputStream)
-  val input = new Input()
-
-  def encoder: KryoEncoder = krTl.get()
+  private val output = new Output(new ByteArrayOutputStream)
+  private val input = new Input()
 
   def register(eventBus: EventBus):KryoMessageCodec = {
     eventBus.asJava.asInstanceOf[JEventBus].registerCodec(this)
@@ -63,22 +58,3 @@ object KryoMessageCodec {
   def apply(clazzes: Seq[Class[_]]): KryoMessageCodec = new KryoMessageCodec(clazzes)
 }
 
-class KryoEncoder(kryo:Kryo, clazzes: Seq[Class[_]]) {
-  clazzes.foreach(kryo.register(_, kryo.getNextRegistrationId))
-
-  val output = new Output(new ByteArrayOutputStream)
-  val input = new Input()
-
-  def decodeFromBytes(bytes: Array[Byte]): Object = {
-    input.setBuffer(bytes)
-    kryo.readClassAndObject(input)
-  }
-
-  def encodeToBytes(s: Object): Array[Byte] = {
-    kryo.writeClassAndObject(output, s)
-    val ret = output.toBytes
-    output.clear()
-    ret
-  }
-
-}
