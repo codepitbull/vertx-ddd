@@ -1,11 +1,11 @@
 package de.codepitbull.vertx.scala.ddd.eventstore
 
+import de.codepitbull.vertx.scala.ddd.eventstore.EventStoreVerticle._
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.lang.scala.json.JsonObject
 import io.vertx.scala.core.eventbus.Message
 import io.vertx.scala.core.streams.Pump.pump
-import EventStoreVerticle._
 
 import scala.concurrent.Future
 
@@ -22,7 +22,7 @@ class EventStoreVerticle extends ScalaVerticle {
   override def startFuture(): Future[Unit] = {
     val eventstoreAddress = config.getString(ConfigAddress, AddressDefault)
     val temporary = config.getBoolean(ConfigTemporary, TemporaryDefault)
-    val es = EventStore(vertx.getOrCreateContext(), "name", temporary)
+    val es = ChronicleEventStore(vertx.getOrCreateContext(), "name", temporary)
     vertx.eventBus()
       .localConsumer[JsonObject](s"${eventstoreAddress}.${AddressReplay}")
       .handler(handleReplay(es) _)
@@ -33,7 +33,7 @@ class EventStoreVerticle extends ScalaVerticle {
   }
 
 
-  def handleReplay(es: EventStore)(message: Message[JsonObject]): Unit = {
+  def handleReplay(es: ChronicleEventStore)(message: Message[JsonObject]): Unit = {
     val replayTarget = vertx.eventBus().sender[Buffer](message.body().getString("consumer"))
     val replaySource = es.readStreamFrom(message.body().getLong("offset"))
     //Send an empty buffer to signal the end of the stream
@@ -42,8 +42,9 @@ class EventStoreVerticle extends ScalaVerticle {
   }
 
 
-  def handleAppend(es: EventStore)(message: Message[Buffer]): Unit = {
+  def handleAppend(es: ChronicleEventStore)(message: Message[Buffer]): Unit = {
     message.reply(es.write(message.body()).asInstanceOf[AnyRef])
   }
 
 }
+

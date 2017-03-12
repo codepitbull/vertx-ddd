@@ -1,8 +1,8 @@
 package de.codepitbull.vertx.scala.ddd.vertx.eventbus.kryo
 
-import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoEncoding
-import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoEncoding.CodecName
-import io.vertx.core.eventbus.{EventBus => JEventBus}
+import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoMessageCodec
+import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoMessageCodec.CodecName
+import io.vertx.core.buffer.Buffer
 import io.vertx.scala.core.Vertx
 import io.vertx.scala.core.eventbus.DeliveryOptions
 import org.scalatest.{AsyncFlatSpec, Matchers}
@@ -13,15 +13,16 @@ class KryoEventbusSpec extends AsyncFlatSpec with Matchers {
 
   "Registering nom-case class" should "fail" in {
     assertThrows[IllegalArgumentException] {
-      new KryoEncoding(Seq(classOf[NonCaseClass]))
+      KryoMessageCodec(Seq(classOf[NonCaseClass]))
     }
   }
 
   "A case class" should "be (de)serializable directly" in {
     val test = ACaseClass("12", Some(1))
-    val codec = new KryoEncoding(Seq(classOf[ACaseClass]))
-    val encoded = codec.encodeToBytes(test)
-    val decoded = codec.decodeFromBytes(encoded)
+    val codec = KryoMessageCodec(Seq(classOf[ACaseClass]))
+    val encoded = Buffer.buffer()
+    codec.encodeToWire(encoded, test)
+    val decoded = codec.decodeFromWire(0, encoded)
     test should equal(decoded)
   }
 
@@ -29,11 +30,20 @@ class KryoEventbusSpec extends AsyncFlatSpec with Matchers {
     val test = ACaseClass("12", Some(1))
     val vertx = Vertx.vertx()
     val promise = Promise[AnyRef]
-    KryoEncoding(Seq(classOf[ACaseClass])).register(vertx.eventBus())
+    KryoMessageCodec(Seq(classOf[ACaseClass])).register(vertx.eventBus())
     vertx.eventBus().consumer[ACaseClass]("testAddr")
       .handler(a => promise.success(a.body()))
     vertx.eventBus().sender("testAddr", DeliveryOptions().setCodecName(CodecName)).send(test)
     promise.future.flatMap(r => r should equal(test))
+  }
+
+
+  "A case class" should "be (de)serializable using the raw decoder" in {
+    val test = ACaseClass("12", Some(1))
+    val codec = KryoMessageCodec(Seq(classOf[ACaseClass])).encoder
+    val encoded = codec.encodeToBytes(test)
+    val decoded = codec.decodeFromBytes(encoded)
+    test should equal(decoded)
   }
 
 }

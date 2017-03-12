@@ -13,11 +13,11 @@ class EventStoreSpec extends FlatSpec with Matchers {
     val vertx = Vertx.vertx()
     val ctx = vertx.getOrCreateContext()
     val testBuffer = buffer("helo world 666".getBytes)
-    val es = EventStore(ctx, "huhu", true)
+    val es = ChronicleEventStore(ctx, "huhu", true)
     es.write(testBuffer)
     val promise = Promise[Buffer]
-    es.readStreamFrom(0l).handler(b => if(!promise.isCompleted) promise.success(b))
-    val resultBuffer = Await.result(promise.future, 1 second)
+    es.readStreamFrom(0l).handler(b => if (!promise.isCompleted) promise.success(b))
+    val resultBuffer = Await.result(promise.future, 10 seconds)
     resultBuffer should equal(testBuffer)
   }
 
@@ -25,7 +25,7 @@ class EventStoreSpec extends FlatSpec with Matchers {
     val vertx = Vertx.vertx()
     val ctx = vertx.getOrCreateContext()
     val testBuffer = buffer("helo world 666".getBytes)
-    val es = EventStore(ctx, "huhu", true)
+    val es = ChronicleEventStore(ctx, "huhu", true)
     es.write(buffer("helo world 1".getBytes))
     es.write(buffer("helo world 2".getBytes))
     es.write(buffer("helo world 3".getBytes))
@@ -35,8 +35,8 @@ class EventStoreSpec extends FlatSpec with Matchers {
     es.write(buffer("helo world 7".getBytes))
     es.write(buffer("helo world 8".getBytes))
     val promise = Promise[Buffer]
-    es.readStreamFrom(theTarget).handler(b => if(!promise.isCompleted) promise.success(b))
-    val resultBuffer = Await.result(promise.future, 1 second)
+    es.readStreamFrom(theTarget).handler(b => if (!promise.isCompleted) promise.success(b))
+    val resultBuffer = Await.result(promise.future, 10 seconds)
     resultBuffer should equal(testBuffer)
   }
 

@@ -7,7 +7,7 @@ import io.vertx.lang.scala.ScalaVerticle.nameForVerticle
 import io.vertx.lang.scala.json.JsonObject
 import io.vertx.scala.core.DeploymentOptions
 import de.codepitbull.vertx.scala.ddd.aggregates.TestAggregate
-import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoEncoding
+import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoMessageCodec
 import org.scalatest.Matchers
 
 import scala.concurrent.Await
@@ -27,10 +27,10 @@ class AggregateVerticleSpec extends VerticleTesting[EventStoreVerticle] with Mat
 
   def fillStore(): Unit = {
     val appenderSender = vertx.eventBus().sender[Buffer](s"${AddressDefault}.${AddressAppend}")
-    val encoding = new KryoEncoding(Seq(classOf[TestAggregate]))
-    val buffer = Buffer.buffer(encoding.encodeToBytes(TestAggregate(1l, "hello world 1")))
+    val encoding = KryoMessageCodec(Seq(classOf[TestAggregate]))
+    val buffer = Buffer.buffer(encoding.encoder.encodeToBytes(TestAggregate(1l, "hello world 1")))
     Await.result(appenderSender.sendFuture[Long](buffer), 10 second)
-    val buffer2 = Buffer.buffer(encoding.encodeToBytes(TestAggregate(2l, "hello world 2")))
+    val buffer2 = Buffer.buffer(encoding.encoder.encodeToBytes(TestAggregate(2l, "hello world 2")))
     Await.result(appenderSender.sendFuture[Long](buffer2), 10 second)
   }
 
