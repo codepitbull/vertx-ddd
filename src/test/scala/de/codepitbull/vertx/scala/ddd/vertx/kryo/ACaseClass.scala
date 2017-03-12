@@ -1,4 +1,4 @@
-package de.codepitbull.vertx.scala.ddd.vertx.eventbus.kryo
+package de.codepitbull.vertx.scala.ddd.vertx.kryo
 
 /**
   * Created by jochen on 12.03.17.

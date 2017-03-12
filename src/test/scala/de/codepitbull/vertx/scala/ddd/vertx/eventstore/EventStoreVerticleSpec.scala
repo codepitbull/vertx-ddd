@@ -1,4 +1,4 @@
-package de.codepitbull.vertx.scala.ddd.eventstore
+package de.codepitbull.vertx.scala.ddd.vertx.eventstore
 
 import java.lang.Boolean.TRUE
 import java.util.UUID

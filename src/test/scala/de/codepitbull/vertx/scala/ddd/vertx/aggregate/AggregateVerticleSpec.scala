@@ -2,7 +2,7 @@ package de.codepitbull.vertx.scala.ddd.vertx.aggregate
 
 import de.codepitbull.vertx.scala.ddd.VerticleTesting
 import de.codepitbull.vertx.scala.ddd.aggregates.TestAggregate
-import de.codepitbull.vertx.scala.ddd.eventstore.EventStoreVerticle
+import de.codepitbull.vertx.scala.ddd.vertx.eventstore.EventStoreVerticle
 import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoEncoder
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.ScalaVerticle.nameForVerticle

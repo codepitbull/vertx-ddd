@@ -1,4 +1,4 @@
-package de.codepitbull.vertx.scala.ddd.eventstore
+package de.codepitbull.vertx.scala.ddd.vertx.eventstore
 
 import java.nio.file.Files
 

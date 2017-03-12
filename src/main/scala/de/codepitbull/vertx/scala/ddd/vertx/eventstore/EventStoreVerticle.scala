@@ -1,6 +1,6 @@
-package de.codepitbull.vertx.scala.ddd.eventstore
+package de.codepitbull.vertx.scala.ddd.vertx.eventstore
 
-import de.codepitbull.vertx.scala.ddd.eventstore.EventStoreVerticle._
+import de.codepitbull.vertx.scala.ddd.vertx.eventstore.EventStoreVerticle._
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.lang.scala.json.JsonObject
