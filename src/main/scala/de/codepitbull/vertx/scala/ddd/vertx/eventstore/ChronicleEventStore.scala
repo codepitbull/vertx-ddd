@@ -3,6 +3,7 @@ package de.codepitbull.vertx.scala.ddd.vertx.eventstore
 import java.nio.file.Files
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 
+import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoEncoder
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.streams.{ReadStream => JReadStream, WriteStream => JWriteStream}
@@ -13,18 +14,20 @@ import net.openhft.chronicle.queue.impl.single.SingleChronicleQueueBuilder
 import net.openhft.chronicle.queue.{ChronicleQueue, ExcerptAppender}
 
 class ChronicleEventStore(ctx: Context, path: String, temporary: Boolean) {
+  val encoder = KryoEncoder()
+
   private var queue = if (temporary)
     SingleChronicleQueueBuilder.binary(Files.createTempDirectory(path)).build
   else
     SingleChronicleQueueBuilder.binary(path).build
   private var appender = queue.acquireAppender
 
-  def write(bytes: Buffer): Long = {
-    appender.writeBytes(Bytes.elasticByteBuffer(bytes.length).write(bytes.getBytes))
+  def write(o: Object): Long = {
+    appender.writeBytes(Bytes.elasticByteBuffer().write(encoder.encodeToBytes(o)))
     appender.lastIndexAppended
   }
 
-  def readStreamFrom(offset: Long): ReadStream[Buffer] = ReadStream(EventReadStream(ctx, queue, offset))
+  def readStreamFrom(offset: Long): ReadStream[Object] = ReadStream(EventReadStream(ctx, queue, offset))
 
   def writeStream: WriteStream[Buffer] = WriteStream(EventWriteStream(ctx, queue))
 
@@ -37,49 +40,49 @@ object ChronicleEventStore {
   def apply(ctx: Context, path: String, temporary: Boolean = true): ChronicleEventStore = new ChronicleEventStore(ctx, path, temporary)
 }
 
-class EventReadStream(val ctx: Context, val queue: ChronicleQueue, val offset: Long) extends JReadStream[Buffer] {
-  private var exceptionHandler = new AtomicReference[Handler[Throwable]]
+class EventReadStream(ctx: Context, queue: ChronicleQueue, offset: Long) extends JReadStream[Object] {
+  private val exceptionHandler = new AtomicReference[Handler[Throwable]]
   private val endHandler = new AtomicReference[Handler[Void]]
   private val paused = new AtomicBoolean(false)
   private var thread: TailThread = _
 
-
-  override def exceptionHandler(exceptionHandler: Handler[Throwable]): JReadStream[Buffer] = {
+  override def exceptionHandler(exceptionHandler: Handler[Throwable]): JReadStream[Object] = {
     this.exceptionHandler.set(exceptionHandler)
     this
   }
 
-  override def handler(handler: Handler[Buffer]): JReadStream[Buffer] = {
+  override def handler(handler: Handler[Object]): JReadStream[Object] = {
     if (this.thread != null) throw new IllegalStateException("Already started")
     thread = new TailThread(handler)
     thread.start()
     this
   }
 
-  def pause: JReadStream[Buffer] = {
+  def pause: JReadStream[Object] = {
     paused.set(true)
     this
   }
 
-  def resume: JReadStream[Buffer] = {
+  def resume: JReadStream[Object] = {
     paused.set(false)
     thread.notify()
     this
   }
 
-  override def endHandler(endHandler: Handler[Void]): JReadStream[Buffer] = {
+  override def endHandler(endHandler: Handler[Void]): JReadStream[Object] = {
     this.endHandler.set(endHandler)
     this
   }
 
-  private class TailThread(handler: Handler[Buffer]) extends Thread {
+  private class TailThread(handler: Handler[Object]) extends Thread {
     override def run() {
+      val encoder = KryoEncoder()
       val tailer = queue.createTailer
       tailer.moveToIndex(offset)
       while (!isInterrupted) {
         val byteBufferBytes = Bytes.elasticByteBuffer
         val readBytes = tailer.readBytes(byteBufferBytes)
-        if (readBytes) ctx.runOnContext(r => handler.handle(Buffer.buffer(byteBufferBytes.toByteArray)))
+        if (readBytes) ctx.runOnContext(r => handler.handle(encoder.decodeFromBytes(byteBufferBytes.toByteArray)))
         else {
           val eh = endHandler.get()
           if (eh != null) ctx.runOnContext(r => eh.handle(null))

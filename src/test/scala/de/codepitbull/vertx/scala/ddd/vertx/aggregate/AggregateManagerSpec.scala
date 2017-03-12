@@ -9,7 +9,7 @@ import org.scalatest.{FlatSpec, Matchers}
 class AggregateManagerSpec extends FlatSpec with Matchers {
 
   "A case class " should "be persistet and loaded correctly" in {
-    val encoder = KryoEncoder(Seq(classOf[TestAggregate]))
+    val encoder = KryoEncoder()
     implicit val am = AggregateManager[TestAggregate]("test1", encoder, true)
     val testObject = TestAggregate(1l, "hallohalloallalal")
     testObject.persist
@@ -18,7 +18,7 @@ class AggregateManagerSpec extends FlatSpec with Matchers {
 
 
   "A case class " should "be persistet, modified and loaded correctly" in {
-    val encoder = KryoEncoder(Seq(classOf[TestAggregate]))
+    val encoder = KryoEncoder()
     implicit val am = AggregateManager[TestAggregate]("test1", encoder, true)
     val testObject = TestAggregate(1l, "hallohalloallalal")
     testObject.persist
@@ -30,7 +30,7 @@ class AggregateManagerSpec extends FlatSpec with Matchers {
 
 
   "Using the reserved offset-tracking-id" should "lead to an IllegalArgumentException" in {
-    val encoder = KryoEncoder(Seq(classOf[TestAggregate]))
+    val encoder = KryoEncoder()
     implicit val am = AggregateManager[TestAggregate]("test1", encoder, true)
     val testObject = TestAggregate(AggregateManager.OffsetPositon, "hallohalloallalal")
     intercept[IllegalArgumentException](testObject.persist)

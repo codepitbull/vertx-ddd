@@ -34,7 +34,7 @@ class EventStoreVerticle extends ScalaVerticle {
 
 
   def handleReplay(es: ChronicleEventStore)(message: Message[JsonObject]): Unit = {
-    val replayTarget = vertx.eventBus().sender[Buffer](message.body().getString("consumer"))
+    val replayTarget = vertx.eventBus().sender[Object](message.body().getString("consumer"))
     val replaySource = es.readStreamFrom(message.body().getLong("offset"))
     //Send an empty buffer to signal the end of the stream
     replaySource.endHandler(u => replayTarget.send(Buffer.buffer(0)))
@@ -46,5 +46,6 @@ class EventStoreVerticle extends ScalaVerticle {
     message.reply(es.write(message.body()).asInstanceOf[AnyRef])
   }
 
+  def classes:Seq[Class[_]] = Seq()
 }
 

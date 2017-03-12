@@ -18,7 +18,7 @@ abstract class AggregateVerticle[T <: AnyRef : TypeTag] extends ScalaVerticle {
   var encoder: KryoEncoder = _
 
   override def startFuture(): Future[Unit] = {
-    encoder = KryoEncoder(classes)
+    encoder = KryoEncoder()
     val am = AggregateManager[T]("manager", encoder)
     val replayConsumerAddress = UUID.randomUUID().toString
     val replaySourceAddress = config.getString("replaySourceAddress", s"${AddressDefault}.${AddressReplay}")

@@ -12,11 +12,11 @@ class EventStoreSpec extends FlatSpec with Matchers {
   "An array of bytes " should "be persistet and loaded back correctly" in {
     val vertx = Vertx.vertx()
     val ctx = vertx.getOrCreateContext()
-    val testBuffer = buffer("helo world 666".getBytes)
+    val testBuffer = "helo world 666"
     val es = ChronicleEventStore(ctx, "huhu", true)
     es.write(testBuffer)
-    val promise = Promise[Buffer]
-    es.readStreamFrom(0l).handler(b => if (!promise.isCompleted) promise.success(b))
+    val promise = Promise[String]
+    es.readStreamFrom(0l).handler(b => if (!promise.isCompleted) promise.success(b.asInstanceOf[String]))
     val resultBuffer = Await.result(promise.future, 10 seconds)
     resultBuffer should equal(testBuffer)
   }
@@ -24,7 +24,7 @@ class EventStoreSpec extends FlatSpec with Matchers {
   "Reading from an offset postion" should "work" in {
     val vertx = Vertx.vertx()
     val ctx = vertx.getOrCreateContext()
-    val testBuffer = buffer("helo world 666".getBytes)
+    val testBuffer = "helo world 666"
     val es = ChronicleEventStore(ctx, "huhu", true)
     es.write(buffer("helo world 1".getBytes))
     es.write(buffer("helo world 2".getBytes))
@@ -34,8 +34,8 @@ class EventStoreSpec extends FlatSpec with Matchers {
     val theTarget = es.write(testBuffer)
     es.write(buffer("helo world 7".getBytes))
     es.write(buffer("helo world 8".getBytes))
-    val promise = Promise[Buffer]
-    es.readStreamFrom(theTarget).handler(b => if (!promise.isCompleted) promise.success(b))
+    val promise = Promise[String]
+    es.readStreamFrom(theTarget).handler(b => if (!promise.isCompleted) promise.success(b.asInstanceOf[String]))
     val resultBuffer = Await.result(promise.future, 10 seconds)
     resultBuffer should equal(testBuffer)
   }

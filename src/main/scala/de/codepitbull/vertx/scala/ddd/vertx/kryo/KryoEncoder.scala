@@ -5,13 +5,8 @@ import java.io.ByteArrayOutputStream
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.twitter.chill.ScalaKryoInstantiator
 
-/**
-  *
-  */
-class KryoEncoder(clazzes: Seq[Class[_]]) {
-  validateCaseClasses(clazzes)
-  private val kryo = new ScalaKryoInstantiator().setRegistrationRequired(true).newKryo()
-  clazzes.foreach(kryo.register(_, kryo.getNextRegistrationId))
+class KryoEncoder {
+  private val kryo = new ScalaKryoInstantiator().newKryo()
 
   val output = new Output(new ByteArrayOutputStream)
   val input = new Input()
@@ -31,5 +26,5 @@ class KryoEncoder(clazzes: Seq[Class[_]]) {
 }
 
 object KryoEncoder{
-  def apply(clazzes: Seq[Class[_]]): KryoEncoder = new KryoEncoder(clazzes)
+  def apply(): KryoEncoder = new KryoEncoder()
 }

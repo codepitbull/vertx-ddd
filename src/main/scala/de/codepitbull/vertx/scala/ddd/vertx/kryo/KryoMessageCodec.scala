@@ -17,10 +17,9 @@ import io.vertx.core.eventbus.{EventBus => JEventBus}
   *
   * This class uses ThreadLocals to protect the non-thread-safe Kryo-objects.
   */
-class KryoMessageCodec(clazzes: Seq[Class[_]]) extends MessageCodec[Object, Object] {
-  validateCaseClasses(clazzes)
+class KryoMessageCodec extends MessageCodec[Object, Object] {
   private val krTl = new ThreadLocal[KryoEncoder] {
-    override def initialValue(): KryoEncoder = new KryoEncoder(clazzes)
+    override def initialValue(): KryoEncoder = new KryoEncoder()
   }
 
   private val output = new Output(new ByteArrayOutputStream)
@@ -55,6 +54,6 @@ class KryoMessageCodec(clazzes: Seq[Class[_]]) extends MessageCodec[Object, Obje
 object KryoMessageCodec {
   val CodecName = "k"
 
-  def apply(clazzes: Seq[Class[_]]): KryoMessageCodec = new KryoMessageCodec(clazzes)
+  def apply(): KryoMessageCodec = new KryoMessageCodec()
 }
 

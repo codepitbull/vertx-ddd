@@ -27,7 +27,7 @@ class AggregateVerticleSpec extends VerticleTesting[EventStoreVerticle] with Mat
 
   def fillStore(): Unit = {
     val appenderSender = vertx.eventBus().sender[Buffer](s"${AddressDefault}.${AddressAppend}")
-    val encoder = KryoEncoder(Seq(classOf[TestAggregate]))
+    val encoder = KryoEncoder()
     val buffer = Buffer.buffer(encoder.encodeToBytes(TestAggregate(1l, "hello world 1")))
     Await.result(appenderSender.sendFuture[Long](buffer), 10 second)
     val buffer2 = Buffer.buffer(encoder.encodeToBytes(TestAggregate(2l, "hello world 2")))
