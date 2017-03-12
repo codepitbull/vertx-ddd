@@ -3,11 +3,13 @@ package de.codepitbull.vertx.scala.ddd.vertx.aggregate
 import de.codepitbull.vertx.scala.ddd.VerticleTesting
 import de.codepitbull.vertx.scala.ddd.aggregates.TestAggregate
 import de.codepitbull.vertx.scala.ddd.vertx.eventstore.EventStoreVerticle
+import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoMessageCodec.CodecName
 import de.codepitbull.vertx.scala.ddd.vertx.kryo.{KryoEncoder, KryoMessageCodec}
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.ScalaVerticle.nameForVerticle
 import io.vertx.lang.scala.json.JsonObject
 import io.vertx.scala.core.DeploymentOptions
+import io.vertx.scala.core.eventbus.DeliveryOptions
 import org.scalatest.Matchers
 
 import scala.concurrent.Await
@@ -19,7 +21,7 @@ class AggregateVerticleSpec extends VerticleTesting[EventStoreVerticle] with Mat
 
   override def config(): JsonObject = super.config().put(ConfigTemporary, true)
 
-  "blaaa" should "bleee" ignore {
+  "blaaa" should "bleee" in {
     KryoMessageCodec(KryoEncoder()).register(vertx.eventBus())
     fillStore()
     vertx.deployVerticleFuture(nameForVerticle[TestAggregateVerticle], DeploymentOptions().setConfig(config()))
@@ -27,12 +29,10 @@ class AggregateVerticleSpec extends VerticleTesting[EventStoreVerticle] with Mat
   }
 
   def fillStore(): Unit = {
-    val appenderSender = vertx.eventBus().sender[Buffer](s"${AddressDefault}.${AddressAppend}")
-    val encoder = KryoEncoder()
-    val buffer = Buffer.buffer(encoder.encodeToBytes(TestAggregate(1l, "hello world 1")))
-    Await.result(appenderSender.sendFuture[Long](buffer), 10 second)
-    val buffer2 = Buffer.buffer(encoder.encodeToBytes(TestAggregate(2l, "hello world 2")))
-    Await.result(appenderSender.sendFuture[Long](buffer2), 10 second)
+    val appenderSender = vertx.eventBus().sender[Object](s"${AddressDefault}.${AddressAppend}",
+      DeliveryOptions().setCodecName(CodecName))
+    Await.result(appenderSender.sendFuture[Long](TestAggregate(1l, "hello world 1")), 10 second)
+    Await.result(appenderSender.sendFuture[Long](TestAggregate(1l, "hello world 2")), 10 second)
   }
 
 }
