@@ -5,8 +5,8 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
 
 import de.codepitbull.vertx.scala.ddd.VerticleTesting
-import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoMessageCodec.CodecName
-import de.codepitbull.vertx.scala.ddd.vertx.kryo.{KryoEncoder, KryoMessageCodec}
+import de.codepitbull.vertx.scala.ext.kryo.KryoMessageCodec
+import de.codepitbull.vertx.scala.ext.kryo.KryoMessageCodec.CodecName
 import io.vertx.lang.scala.json.{Json, JsonObject}
 import io.vertx.scala.core.eventbus.DeliveryOptions
 import org.scalatest.Matchers
@@ -18,7 +18,7 @@ class EventStoreVerticleSpec extends VerticleTesting[EventStoreVerticle] with Ma
   import EventStoreVerticle._
 
   "A message sent to the verticle" should "be persisted and read back" in {
-    KryoMessageCodec(KryoEncoder()).register(vertx.eventBus())
+    KryoMessageCodec().register(vertx.eventBus())
     val consumerAddress = UUID.randomUUID().toString
     val appenderSender = vertx.eventBus().sender[Object](s"${AddressDefault}.${AddressAppend}", DeliveryOptions().setCodecName(CodecName))
     val replaySender = vertx.eventBus().sender[JsonObject](s"${AddressDefault}.${AddressReplay}")

@@ -3,8 +3,8 @@ package de.codepitbull.vertx.scala.ddd.vertx.aggregate
 import de.codepitbull.vertx.scala.ddd.VerticleTesting
 import de.codepitbull.vertx.scala.ddd.aggregates.TestAggregate
 import de.codepitbull.vertx.scala.ddd.vertx.eventstore.EventStoreVerticle
-import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoMessageCodec.CodecName
-import de.codepitbull.vertx.scala.ddd.vertx.kryo.{KryoEncoder, KryoMessageCodec}
+import de.codepitbull.vertx.scala.ext.kryo.KryoMessageCodec
+import de.codepitbull.vertx.scala.ext.kryo.KryoMessageCodec.CodecName
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.ScalaVerticle.nameForVerticle
 import io.vertx.lang.scala.json.JsonObject
@@ -22,7 +22,7 @@ class AggregateVerticleSpec extends VerticleTesting[EventStoreVerticle] with Mat
   override def config(): JsonObject = super.config().put(ConfigTemporary, true)
 
   "blaaa" should "bleee" in {
-    KryoMessageCodec(KryoEncoder()).register(vertx.eventBus())
+    KryoMessageCodec().register(vertx.eventBus())
     fillStore()
     vertx.deployVerticleFuture(nameForVerticle[TestAggregateVerticle], DeploymentOptions().setConfig(config()))
       .flatMap(r => "1" should equal("1"))

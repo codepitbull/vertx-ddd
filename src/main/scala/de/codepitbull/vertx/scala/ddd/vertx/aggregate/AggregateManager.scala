@@ -5,7 +5,7 @@ import java.nio.ByteBuffer
 
 import de.codepitbull.vertx.scala.ddd.vertx.aggregate.AggregateManager.OffsetPositon
 import de.codepitbull.vertx.scala.ddd.vertx.aggregate.Persistence.{AggregateId, SerializedAggregate}
-import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoEncoder
+import de.codepitbull.vertx.scala.ext.kryo.KryoEncoder
 import net.openhft.chronicle.map.ChronicleMap
 
 import scala.reflect.runtime.universe._

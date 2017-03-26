@@ -3,7 +3,7 @@ package de.codepitbull.vertx.scala.ddd.vertx.eventstore
 import java.nio.file.Files
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 
-import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoEncoder
+import de.codepitbull.vertx.scala.ext.kryo.KryoEncoder
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.streams.{ReadStream => JReadStream, WriteStream => JWriteStream}

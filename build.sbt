@@ -12,7 +12,8 @@ libraryDependencies ++= Vector (
   Library.chronicleMap,
   Library.vertxHazelcast,
   Library.jacksonScala,
-  Library.chill,
+  Library.vertxKryo,
+  Library.rxScala,
   Library.mockito         % "test",
   Library.scalaTest       % "test"
 )

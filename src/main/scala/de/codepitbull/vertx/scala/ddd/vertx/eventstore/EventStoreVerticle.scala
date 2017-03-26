@@ -1,8 +1,8 @@
 package de.codepitbull.vertx.scala.ddd.vertx.eventstore
 
 import de.codepitbull.vertx.scala.ddd.vertx.eventstore.EventStoreVerticle._
-import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoEncoder
-import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoMessageCodec.CodecName
+import de.codepitbull.vertx.scala.ext.kryo.KryoEncoder
+import de.codepitbull.vertx.scala.ext.kryo.KryoMessageCodec.CodecName
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.lang.scala.json.JsonObject

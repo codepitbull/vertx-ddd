@@ -4,7 +4,7 @@ import java.util.UUID
 
 import de.codepitbull.vertx.scala.ddd.vertx.eventstore.EventStoreVerticle._
 import de.codepitbull.vertx.scala.ddd.vertx.eventstore.StreamFinish
-import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoEncoder
+import de.codepitbull.vertx.scala.ext.kryo.KryoEncoder
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.lang.scala.json.Json

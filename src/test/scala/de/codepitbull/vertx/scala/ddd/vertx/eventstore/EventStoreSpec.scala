@@ -1,6 +1,6 @@
 package de.codepitbull.vertx.scala.ddd.vertx.eventstore
 
-import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoEncoder
+import de.codepitbull.vertx.scala.ext.kryo.KryoEncoder
 import io.vertx.core.buffer.Buffer.buffer
 import io.vertx.scala.core.Vertx
 import org.scalatest.{FlatSpec, Matchers}

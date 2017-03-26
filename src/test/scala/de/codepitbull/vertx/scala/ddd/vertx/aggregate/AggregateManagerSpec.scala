@@ -3,7 +3,7 @@ package de.codepitbull.vertx.scala.ddd.vertx.aggregate
 import de.codepitbull.vertx.scala.ddd.aggregates.EntitiesAddons._
 import de.codepitbull.vertx.scala.ddd.aggregates.TestAggregate
 import de.codepitbull.vertx.scala.ddd.vertx.aggregate.Persistence._
-import de.codepitbull.vertx.scala.ddd.vertx.kryo.KryoEncoder
+import de.codepitbull.vertx.scala.ext.kryo.KryoEncoder
 import org.scalatest.{FlatSpec, Matchers}
 
 class AggregateManagerSpec extends FlatSpec with Matchers {
