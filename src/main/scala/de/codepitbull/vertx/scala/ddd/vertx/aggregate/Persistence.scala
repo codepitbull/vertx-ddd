@@ -9,7 +9,7 @@ object Persistence {
     def id(x: A):java.lang.Long
   }
 
-  implicit class PersistentUtil[A <: AnyRef](x: A)(implicit aggregateManager: AggregateManager[A]) {
+  implicit class PersistentUtil[A <: AnyRef](x: A)(implicit aggregateManager: SnapshotStorage[A]) {
     def persist(implicit persistable: Persistent[A]): Unit = {
       aggregateManager.persist(persistable.id(x), x)
     }

@@ -2,7 +2,14 @@ package de.codepitbull.vertx.scala.ddd.aggregates
 
 import de.codepitbull.vertx.scala.ddd.vertx.aggregate.Persistence.AggregateId
 
-/**
-  * Created by jochen on 28.02.17.
-  */
 final case class TestAggregate(id: AggregateId, name: String)
+
+final case class CreateAggregateCommand(id: AggregateId, name: String)
+
+final case class AggregateCreatedEvent(id: AggregateId, name: String)
+
+final case class UpdateAggregateCommand(id: AggregateId, newName: String)
+
+final case class AggregateUpdatedEvent(id: AggregateId, newName: String)
+
+final case class LoadAggregate(id: AggregateId)
