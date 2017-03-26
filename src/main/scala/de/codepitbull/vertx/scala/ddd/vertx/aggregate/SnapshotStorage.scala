@@ -36,9 +36,6 @@ class AggregateManager[A <: AnyRef](val name: String, theMap: ChronicleMap[Aggre
   }
 }
 
-/**
-  * Methods on the object have to threadsafe as they are shared across all verticles.
-  */
 object AggregateManager {
   val OffsetPositon: java.lang.Long = -1l
   private val classLoaderMirror = runtimeMirror(getClass.getClassLoader)

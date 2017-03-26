@@ -1,4 +1,4 @@
-package de.codepitbull.vertx.scala.ddd.vertx.eventstore
+package de.codepitbull.vertx.scala.ddd.vertx.aggregate
 
 import de.codepitbull.vertx.scala.ext.kryo.KryoEncoder
 import io.vertx.core.buffer.Buffer.buffer
@@ -14,10 +14,10 @@ class EventStoreSpec extends FlatSpec with Matchers {
     val ctx = vertx.getOrCreateContext()
     val encoder = KryoEncoder()
     val testBuffer = "helo world 666"
-    val es = ChronicleEventStore(ctx, "huhu", encoder, true)
+    val es = EventStore(ctx, "huhu", encoder, true)
     es.write(testBuffer)
     val promise = Promise[String]
-    es.readStreamFrom(0l).handler(b => if (!promise.isCompleted) promise.success(b.asInstanceOf[String]))
+    es.replay(0l, b => if (!promise.isCompleted) promise.success(b.asInstanceOf[String]))
     val resultBuffer = Await.result(promise.future, 10 seconds)
     resultBuffer should equal(testBuffer)
   }
@@ -27,7 +27,7 @@ class EventStoreSpec extends FlatSpec with Matchers {
     val ctx = vertx.getOrCreateContext()
     val encoder = KryoEncoder()
     val testBuffer = "helo world 666"
-    val es = ChronicleEventStore(ctx, "huhu", encoder, true)
+    val es = EventStore(ctx, "huhu", encoder, true)
     es.write(buffer("helo world 1".getBytes))
     es.write(buffer("helo world 2".getBytes))
     es.write(buffer("helo world 3".getBytes))
@@ -37,7 +37,7 @@ class EventStoreSpec extends FlatSpec with Matchers {
     es.write(buffer("helo world 7".getBytes))
     es.write(buffer("helo world 8".getBytes))
     val promise = Promise[String]
-    es.readStreamFrom(theTarget).handler(b => if (!promise.isCompleted) promise.success(b.asInstanceOf[String]))
+    es.replay(theTarget, b => if (!promise.isCompleted) promise.success(b.asInstanceOf[String]))
     val resultBuffer = Await.result(promise.future, 10 seconds)
     resultBuffer should equal(testBuffer)
   }

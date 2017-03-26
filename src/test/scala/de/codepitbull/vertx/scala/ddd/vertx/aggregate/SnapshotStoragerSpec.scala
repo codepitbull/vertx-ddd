@@ -6,7 +6,7 @@ import de.codepitbull.vertx.scala.ddd.vertx.aggregate.Persistence._
 import de.codepitbull.vertx.scala.ext.kryo.KryoEncoder
 import org.scalatest.{FlatSpec, Matchers}
 
-class AggregateManagerSpec extends FlatSpec with Matchers {
+class SnapshotStoragerSpec extends FlatSpec with Matchers {
 
   "A case class " should "be persistet and loaded correctly" in {
     val encoder = KryoEncoder()
